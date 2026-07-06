@@ -1,6 +1,8 @@
 const path = require('path');
 const bcrypt = require('bcryptjs');
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
+const fs = require('fs');
+const os = require('os');
 
 let db;
 
@@ -19,24 +21,31 @@ function parseTursoResult(result) {
 }
 
 function createTursoClient(url, authToken) {
-  const scriptPath = path.join(__dirname, 'scripts', 'turso-exec.js');
+  const scriptPath = path.join(__dirname, 'scripts', 'turso-exec.cjs');
 
   function execRequest(sql, params) {
     const input = JSON.stringify({ sql, args: params.filter(p => p !== undefined) });
-    const opts = {
-      env: { ...process.env, TURSO_DATABASE_URL: url, TURSO_AUTH_TOKEN: authToken },
-      timeout: 20000,
-      stdio: 'pipe',
-      input
-    };
-    const stdout = execSync(`"${process.execPath}" "${scriptPath}"`, opts);
-    const json = JSON.parse(stdout.toString('utf-8'));
-    const result = json.results?.[0]?.response?.result;
-    if (!result) {
-      const errMsg = json.results?.[0]?.error?.message || 'Erro Turso';
-      throw new Error(errMsg);
+    const tmpFile = path.join(os.tmpdir(), `turso_${Date.now()}_${Math.random().toString(36).slice(2)}.json`);
+    try {
+      fs.writeFileSync(tmpFile, input, 'utf-8');
+      const opts = {
+        env: { ...process.env, TURSO_DATABASE_URL: url, TURSO_AUTH_TOKEN: authToken },
+        timeout: 20000,
+        stdio: 'pipe'
+      };
+      const stdout = execFileSync(process.execPath, [scriptPath, tmpFile], opts);
+      fs.unlinkSync(tmpFile);
+      const json = JSON.parse(stdout.toString('utf-8'));
+      const result = json.results?.[0]?.response?.result;
+      if (!result) {
+        const errMsg = json.results?.[0]?.error?.message || 'Erro Turso';
+        throw new Error(errMsg);
+      }
+      return parseTursoResult(result);
+    } catch (err) {
+      try { fs.unlinkSync(tmpFile); } catch (e) {}
+      throw err;
     }
-    return parseTursoResult(result);
   }
 
   return {

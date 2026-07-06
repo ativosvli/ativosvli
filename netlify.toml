@@ -5,7 +5,7 @@
 
 [functions]
   node_bundler = "nft"
-  included_files = ["scripts/**/*"]
+  included_files = ["scripts/turso-exec.cjs"]
 
 [[redirects]]
   from = "/api/*"
