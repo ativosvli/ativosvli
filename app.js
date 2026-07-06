@@ -52,6 +52,16 @@ app.get('/api/debug', (req, res) => {
     } catch (e) {
       result.childError = e.message;
     }
+    try {
+      const { getDatabase } = require('./database');
+      const db = getDatabase();
+      const r = db.prepare('SELECT COUNT(*) FROM ativos').get();
+      result.tursoOk = true;
+      result.ativosCount = r ? r[0] : null;
+    } catch (e) {
+      result.tursoError = e.message;
+      result.tursoStack = (e.stack || '').split('\n').slice(0,3).join(' | ');
+    }
   } catch (e) {
     result.error = e.message;
   }
