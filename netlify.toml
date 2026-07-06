@@ -5,7 +5,6 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["@libsql/client", "better-sqlite3", "bcryptjs", "express-session"]
 
 [[redirects]]
   from = "/api/*"

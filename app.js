@@ -7,9 +7,9 @@ const { sseHandler } = require('./events');
 
 const app = express();
 
-const tempDir = path.join(__dirname, 'temp_uploads');
+const tempDir = process.env.TEMP_DIR || path.join(__dirname, 'temp_uploads');
 if (!fs.existsSync(tempDir)) {
-  fs.mkdirSync(tempDir, { recursive: true });
+  try { fs.mkdirSync(tempDir, { recursive: true }); } catch (e) {}
 }
 
 app.use(express.json());

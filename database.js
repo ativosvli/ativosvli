@@ -3,31 +3,53 @@ const bcrypt = require('bcryptjs');
 
 let db;
 
-function createLibSqlWrapper(client) {
+function createTursoClient(url, authToken) {
+  const syncRequest = require('sync-request');
+  const dbName = url.replace('libsql://', '').replace('.turso.io', '');
+  const baseUrl = `https://${dbName}.turso.io/v2/pipeline`;
+
+  function execRequest(sql, params) {
+    const body = JSON.stringify({
+      requests: [{ type: "execute", stmt: { sql, args: params || [] } }]
+    });
+    const res = syncRequest('POST', baseUrl, {
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'application/json'
+      },
+      body
+    });
+    const json = JSON.parse(res.body.toString('utf-8'));
+    const result = json.results?.[0]?.response?.result;
+    if (!result) {
+      const errMsg = json.results?.[0]?.error?.message || 'Erro Turso';
+      throw new Error(errMsg);
+    }
+    return result;
+  }
+
   return {
     prepare(sql) {
       return {
         run(...params) {
-          const stmt = { sql, args: params.filter(p => p !== undefined) };
-          const result = client.execute(stmt);
-          return { changes: Number(result.rowsAffected), lastInsertRowid: Number(result.lastInsertRowid) };
+          const result = execRequest(sql, params.filter(p => p !== undefined));
+          return { changes: Number(result.affectedRowCount || 0), lastInsertRowid: Number(result.lastInsertRowid || 0) };
         },
         get(...params) {
-          const stmt = { sql, args: params.filter(p => p !== undefined) };
-          const result = client.execute(stmt);
-          return result.rows[0] || undefined;
+          const result = execRequest(sql, params.filter(p => p !== undefined));
+          return result.rows?.[0] || undefined;
         },
         all(...params) {
-          const stmt = { sql, args: params.filter(p => p !== undefined) };
-          const result = client.execute(stmt);
-          return result.rows;
+          const result = execRequest(sql, params.filter(p => p !== undefined));
+          return result.rows || [];
         }
       };
     },
     exec(sql) {
-      client.execute({ sql });
+      execRequest(sql, []);
     },
-    pragma() {}
+    pragma() {},
+    close() {}
   };
 }
 
@@ -35,13 +57,8 @@ function getDatabase() {
   if (db) return db;
 
   if (process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN) {
-    const { createClient } = require('@libsql/client');
-    const client = createClient({
-      url: process.env.TURSO_DATABASE_URL,
-      authToken: process.env.TURSO_AUTH_TOKEN
-    });
-    db = createLibSqlWrapper(client);
-    console.log('Conectado ao Turso Database');
+    console.log('Conectado ao Turso Database (sync-request)');
+    db = createTursoClient(process.env.TURSO_DATABASE_URL, process.env.TURSO_AUTH_TOKEN);
   } else {
     const Database = require('better-sqlite3');
     db = new Database(path.join(__dirname, 'database.sqlite'));
