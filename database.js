@@ -29,7 +29,7 @@ function createTursoClient(url, authToken) {
       stdio: 'pipe',
       input
     };
-    const stdout = execSync(`node "${scriptPath}"`, opts);
+    const stdout = execSync(`"${process.execPath}" "${scriptPath}"`, opts);
     const json = JSON.parse(stdout.toString('utf-8'));
     const result = json.results?.[0]?.response?.result;
     if (!result) {
