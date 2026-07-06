@@ -19,6 +19,14 @@ function parseTursoResult(result) {
 function createTursoClient(url, authToken) {
   const dbName = url.replace('libsql://', '').replace('.turso.io', '');
 
+  function rowToObj(row, columns) {
+    const obj = {};
+    for (let i = 0; i < columns.length; i++) {
+      obj[columns[i]] = row ? row[i] : undefined;
+    }
+    return obj;
+  }
+
   function execRequest(sql, params) {
     const body = JSON.stringify({
       requests: [{ type: "execute", stmt: { sql, args: params.filter(p => p !== undefined) } }]
@@ -44,11 +52,11 @@ function createTursoClient(url, authToken) {
         },
         get(...params) {
           const r = execRequest(sql, params.filter(p => p !== undefined));
-          return r.rows[0] || undefined;
+          return r.rows[0] ? rowToObj(r.rows[0], r.columns) : undefined;
         },
         all(...params) {
           const r = execRequest(sql, params.filter(p => p !== undefined));
-          return r.rows || [];
+          return r.rows.map(row => rowToObj(row, r.columns));
         }
       };
     },

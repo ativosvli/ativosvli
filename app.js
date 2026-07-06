@@ -37,37 +37,6 @@ app.get('/api/status', (req, res) => {
   res.json({ status: 'online', versao: '1.0.0' });
 });
 
-app.get('/api/debug', (req, res) => {
-  const result = {};
-  try {
-    result.execPath = process.execPath;
-    result.lambdaTaskRoot = process.env.LAMBDA_TASK_ROOT;
-    result.nodeVersion = process.version;
-    result.platform = process.platform;
-    result.envKeys = Object.keys(process.env).filter(k => !k.includes('TOKEN') && !k.includes('SECRET') && !k.includes('KEY'));
-    try {
-      const { execFileSync } = require('child_process');
-      const out = execFileSync(process.execPath, ['-e', 'console.log("hello from child")'], { timeout: 5000 });
-      result.childWorks = out.toString().trim();
-    } catch (e) {
-      result.childError = e.message;
-    }
-    try {
-      const { getDatabase } = require('./database');
-      const db = getDatabase();
-      const r = db.prepare('SELECT COUNT(*) FROM ativos').get();
-      result.tursoOk = true;
-      result.ativosCount = r ? r[0] : null;
-    } catch (e) {
-      result.tursoError = e.message;
-      result.tursoStack = (e.stack || '').split('\n').slice(0,3).join(' | ');
-    }
-  } catch (e) {
-    result.error = e.message;
-  }
-  res.json(result);
-});
-
 app.use((req, res, next) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ erro: 'Rota não encontrada' });
