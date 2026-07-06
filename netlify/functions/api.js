@@ -1,25 +1,14 @@
 const serverless = require('serverless-http');
-
-let handler;
-try {
-  const app = require('../../app');
-  handler = serverless(app);
-} catch (err) {
-  console.error('Erro ao carregar app:', err);
-  handler = async () => ({
-    statusCode: 500,
-    body: JSON.stringify({ erro: 'Erro ao carregar app', msg: err.message, stack: err.stack?.split('\n').slice(0,5).join('\\n') })
-  });
-}
+const app = require('../../app');
 
 exports.handler = async (event, context) => {
   try {
-    return await handler(event, context);
+    return await serverless(app)(event, context);
   } catch (err) {
-    console.error('Erro handler:', err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ erro: err.message, stack: err.stack?.split('\n').slice(0,5).join('\\n') })
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ error: err.message, stack: (err.stack || '').split('\n').slice(0,3).join(' | ') })
     };
   }
 };
