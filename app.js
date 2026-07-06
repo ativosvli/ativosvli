@@ -37,20 +37,6 @@ app.get('/api/status', (req, res) => {
   res.json({ status: 'online', versao: '1.0.0' });
 });
 
-app.post('/api/test-login', (req, res) => {
-  try {
-    const { getDatabase } = require('./database');
-    const db = getDatabase();
-    const u = db.prepare('SELECT * FROM usuarios WHERE username = ? AND ativo = 1').get('admin');
-    if (!u) return res.json({ erro: 'usuario nao encontrado' });
-    const bcrypt = require('bcryptjs');
-    const match = bcrypt.compareSync('admin123', u.password);
-    res.json({ found: true, username: u.username, match, hasPassword: !!u.password });
-  } catch (e) {
-    res.json({ erro: e.message, stack: (e.stack||'').split('\n').slice(0,3).join(' | ') });
-  }
-});
-
 app.use((req, res, next) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ erro: 'Rota não encontrada' });
@@ -64,7 +50,7 @@ app.use((req, res, next) => {
 
 app.use((err, req, res, next) => {
   console.error('Erro:', err.message, err.stack);
-  res.status(500).json({ erro: 'Erro interno do servidor', detalhe: err.message });
+  res.status(500).json({ erro: 'Erro interno do servidor' });
 });
 
 module.exports = app;

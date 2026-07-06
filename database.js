@@ -19,6 +19,13 @@ function parseTursoResult(result) {
 function createTursoClient(url, authToken) {
   const dbName = url.replace('libsql://', '').replace('.turso.io', '');
 
+  function toTursoValue(val) {
+    if (val === null || val === undefined) return { type: 'null' };
+    if (typeof val === 'number') return { type: 'integer', value: String(val) };
+    if (typeof val === 'string') return { type: 'text', value: val };
+    return { type: 'text', value: String(val) };
+  }
+
   function rowToObj(row, columns) {
     const obj = {};
     for (let i = 0; i < columns.length; i++) {
@@ -29,7 +36,7 @@ function createTursoClient(url, authToken) {
 
   function execRequest(sql, params) {
     const body = JSON.stringify({
-      requests: [{ type: "execute", stmt: { sql, args: params.filter(p => p !== undefined) } }]
+      requests: [{ type: "execute", stmt: { sql, args: params.filter(p => p !== undefined).map(toTursoValue) } }]
     });
     const b64Body = Buffer.from(body).toString('base64');
     const code = `p=JSON.parse(Buffer.from(process.argv[1],'base64').toString());require('https').request({hostname:'${dbName}.turso.io',path:'/v2/pipeline',method:'POST',headers:{'Authorization':'Bearer ${authToken}','Content-Type':'application/json'}},r=>{let d='';r.on('data',c=>d+=c);r.on('end',()=>process.stdout.write(d))}).on('error',e=>{process.stderr.write(e.message);process.exit(1)}).end(JSON.stringify(p))`;
@@ -37,8 +44,8 @@ function createTursoClient(url, authToken) {
     const json = JSON.parse(stdout.toString('utf-8'));
     const result = json.results?.[0]?.response?.result;
     if (!result) {
-      const fullErr = JSON.stringify(json.results?.[0]) || JSON.stringify(json);
-      throw new Error('Turso: ' + fullErr);
+      const errMsg = json.results?.[0]?.error?.message || 'Erro Turso';
+      throw new Error(errMsg);
     }
     return parseTursoResult(result);
   }
