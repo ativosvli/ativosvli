@@ -1,59 +1,7 @@
 require('dotenv').config();
-const express = require('express');
-const session = require('express-session');
-const path = require('path');
-const fs = require('fs');
+const app = require('./app');
 
-const { sseHandler } = require('./events');
-
-const app = express();
 const PORT = process.env.PORT || 3000;
-
-const tempDir = path.join(__dirname, 'temp_uploads');
-if (!fs.existsSync(tempDir)) {
-  fs.mkdirSync(tempDir, { recursive: true });
-}
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'gestao-ativos-secret-key-2024',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: false, maxAge: 8 * 60 * 60 * 1000 }
-}));
-
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/ativos', require('./routes/ativos'));
-app.use('/api/auditoria', require('./routes/auditoria'));
-app.use('/api/importar', require('./routes/import'));
-app.use('/api/exportar', require('./routes/export'));
-app.use('/api/exportar/auditoria', require('./routes/export-auditoria'));
-app.use('/api/upload', require('./routes/upload'));
-
-app.get('/api/eventos', sseHandler);
-
-app.get('/api/status', (req, res) => {
-  res.json({ status: 'online', versao: '1.0.0' });
-});
-
-app.use((req, res, next) => {
-  if (req.path.startsWith('/api')) {
-    return res.status(404).json({ erro: 'Rota não encontrada' });
-  }
-  const filePath = path.join(__dirname, 'public', req.path === '/' ? 'dashboard.html' : req.path.slice(1));
-  if (require('fs').existsSync(filePath)) {
-    return res.sendFile(filePath);
-  }
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.use((err, req, res, next) => {
-  console.error('Erro:', err.message);
-  res.status(500).json({ erro: 'Erro interno do servidor' });
-});
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n========================================`);

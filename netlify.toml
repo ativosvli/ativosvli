@@ -1,6 +1,11 @@
 [build]
   publish = "public"
   functions = "netlify/functions"
+  command = "npm ci"
+
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["app.js", "database.js", "events.js", "routes/**/*", "middleware/**/*"]
 
 [[redirects]]
   from = "/api/*"

@@ -1,4 +1,5 @@
 const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const Database = require('better-sqlite3');
 const { createClient } = require('@libsql/client');
 
@@ -17,6 +18,22 @@ async function migrate() {
   console.log('Migrando dados para Turso...\n');
 
   const tables = ['usuarios', 'ativos', 'auditoria', 'uploads'];
+
+  // Criar tabelas no Turso primeiro
+  for (const table of tables) {
+    const schema = local.prepare(`SELECT sql FROM sqlite_master WHERE name = ? AND type = 'table'`).get(table);
+    if (schema) {
+      try {
+        await turso.execute(schema.sql);
+        console.log(`Tabela ${table} criada/verificada`);
+      } catch (err) {
+        // Se já existe, o erro é ignorado
+        if (!err.message.includes('already exists')) {
+          console.error(`Erro ao criar tabela ${table}: ${err.message}`);
+        }
+      }
+    }
+  }
 
   for (const table of tables) {
     const rows = local.prepare(`SELECT * FROM ${table}`).all();
