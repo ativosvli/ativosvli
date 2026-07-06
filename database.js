@@ -37,8 +37,8 @@ function createTursoClient(url, authToken) {
     const json = JSON.parse(stdout.toString('utf-8'));
     const result = json.results?.[0]?.response?.result;
     if (!result) {
-      const errMsg = json.results?.[0]?.error?.message || JSON.stringify(json.results?.[0]?.error) || 'Erro Turso';
-      throw new Error(errMsg);
+      const fullErr = JSON.stringify(json.results?.[0]) || JSON.stringify(json);
+      throw new Error('Turso: ' + fullErr);
     }
     return parseTursoResult(result);
   }
