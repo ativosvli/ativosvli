@@ -4,8 +4,7 @@
   command = "npm ci"
 
 [functions]
-  node_bundler = "nft"
-  included_files = ["app.js", "database.js", "events.js"]
+  node_bundler = "esbuild"
   external_node_modules = ["@libsql/client", "better-sqlite3", "bcryptjs", "express-session"]
 
 [[redirects]]

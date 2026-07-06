@@ -15,7 +15,7 @@ if (!fs.existsSync(tempDir)) {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'gestao-ativos-secret-key-2024',
+  secret: process.env.SESSION_SECRET || 'sess-gestao-2024',
   resave: false,
   saveUninitialized: false,
   cookie: { secure: false, maxAge: 8 * 60 * 60 * 1000 }

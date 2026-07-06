@@ -21,7 +21,7 @@ router.post('/login', (req, res) => {
 
   const token = jwt.sign(
     { id: usuario.id, username: usuario.username, nome: usuario.nome, perfil: usuario.perfil },
-    process.env.JWT_SECRET || 'jwt-secret-key-gestao-ativos-2024',
+    process.env.JWT_SECRET || 'jwt-gestao-key-2024',
     { expiresIn: '8h' }
   );
 

@@ -8,7 +8,7 @@ function autenticar(req, res, next) {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'jwt-secret-key-gestao-ativos-2024');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'jwt-gestao-key-2024');
     req.usuario = decoded;
     next();
   } catch (err) {
