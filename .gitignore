@@ -1,0 +1,13 @@
+node_modules/
+build/
+database.sqlite
+database.sqlite-shm
+database.sqlite-wal
+temp_uploads/
+teste-export.xlsx
+planilha-teste-ativos.xlsx
+.env
+*.log
+.DS_Store
+Thumbs.db
+criar-planilha-teste.js

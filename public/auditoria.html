@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auditoria - Gestão de Ativos HAAS VLI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="brand">
+          <div class="brand-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <span>Gestão de Ativos HAAS VLI</span>
+        </div>
+        <span class="sub">Painel de Controle</span>
+      </div>
+      <nav>
+        <a href="/dashboard.html">
+          <div class="nav-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          </div>
+          <span>Dashboard</span>
+        </a>
+        <a href="/ativos.html">
+          <div class="nav-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+          </div>
+          <span>Ativos</span>
+        </a>
+        <a href="/auditoria.html" class="ativo">
+          <div class="nav-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <span>Auditoria</span>
+        </a>
+        <a href="#" id="navUsuarios" onclick="abrirModalUsuarios();return false;" style="display:none;">
+          <div class="nav-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <span>Usuários</span>
+        </a>
+      </nav>
+      <div class="user-info">
+        <div class="user-name" id="userName"></div>
+        <span class="perfil-badge" id="perfilBadge"></span>
+      </div>
+      <a href="#" class="theme-btn" id="loginBtn" style="display:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        <span>Fazer Login</span>
+      </a>
+      <a href="#" class="theme-btn" id="themeBtn">
+        <svg class="theme-icon-light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span>Tema</span>
+      </a>
+      <a href="#" class="theme-btn" id="logoutBtn" style="display:none;" onclick="logout()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Sair</span>
+      </a>
+    </aside>
+    <main class="main-content">
+      <div class="header-bar">
+        <h2>
+          Auditoria
+          <span class="badge" id="totalBadge">0 registros</span>
+        </h2>
+        <div class="acoes">
+          <button class="btn btn-info admin-only" onclick="exportarAuditoria()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exportar Excel
+          </button>
+        </div>
+      </div>
+
+      <div class="filtros-bar">
+        <div class="filtro-group">
+          <label>Data Início</label>
+          <input type="date" id="auditDataInicio">
+        </div>
+        <div class="filtro-group">
+          <label>Data Fim</label>
+          <input type="date" id="auditDataFim">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="carregarAuditoria(true)">Filtrar</button>
+        <button class="btn btn-outline btn-sm" onclick="document.getElementById('auditDataInicio').value='';document.getElementById('auditDataFim').value='';carregarAuditoria(true)">Limpar</button>
+      </div>
+
+      <div class="audit-timeline" id="auditoriaList"></div>
+      <div class="pagination-controls">
+        <button id="btnAnterior" onclick="mudarPagina(-1)">Anterior</button>
+        <span id="infoPagina"></span>
+        <button id="btnProximo" onclick="mudarPagina(1)">Próximo</button>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-overlay" id="modalUsuarios">
+    <div class="modal" style="max-width:550px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="margin:0;">Gerenciar Usuários</h3>
+        <button class="btn btn-outline" onclick="fecharModal('modalUsuarios')" style="padding:6px 14px;">Fechar</button>
+      </div>
+      <div style="margin-bottom:16px;display:flex;gap:8px;">
+        <input type="text" id="inputNovoUser" placeholder="Login" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;background:var(--bg);color:var(--text);">
+        <input type="text" id="inputNovoNome" placeholder="Nome completo" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;background:var(--bg);color:var(--text);">
+        <input type="password" id="inputNovoPass" placeholder="Senha" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;background:var(--bg);color:var(--text);">
+        <button class="btn btn-primary btn-sm" onclick="criarUsuario()">Criar</button>
+      </div>
+      <div id="msgUsuario" style="font-size:13px;margin-bottom:12px;"></div>
+      <div style="max-height:300px;overflow-y:auto;">
+        <table class="table">
+          <thead><tr><th>#</th><th>Login</th><th>Nome</th><th>Criado em</th><th>Ações</th></tr></thead>
+          <tbody id="tabelaUsuarios"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalLogin">
+    <div class="modal" style="max-width:400px;">
+      <h3 style="text-align:center;">Acessar Sistema</h3>
+      <form id="loginModalForm">
+        <div class="form-group">
+          <label>Usuário</label>
+          <input type="text" id="loginModalUser" placeholder="Digite seu usuário" required autofocus>
+        </div>
+        <div class="form-group">
+          <label>Senha</label>
+          <input type="password" id="loginModalPass" placeholder="Digite sua senha" required>
+        </div>
+        <div class="login-error" id="loginModalError" style="display:none;"></div>
+        <div class="form-buttons">
+          <button type="button" class="btn btn-outline" onclick="fecharModal('modalLogin')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Entrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <input type="hidden" id="loginModalCallback" value="0">
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="/js/main.js"></script>
+  <script>
+    let paginaAtual = 1;
+    let totalRegistros = 0;
+
+    function getFiltrosAudit() {
+      const params = [];
+      const di = document.getElementById('auditDataInicio').value;
+      const df = document.getElementById('auditDataFim').value;
+      if (di) params.push(`data_inicio=${di}`);
+      if (df) params.push(`data_fim=${df}`);
+      return params.length ? '&' + params.join('&') : '';
+    }
+
+    async function carregarAuditoria(resetPagina = true) {
+      try {
+        if (resetPagina) paginaAtual = 1;
+        const res = await fetch(`/api/auditoria?page=${paginaAtual}&limit=50${getFiltrosAudit()}`, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        
+        const data = await res.json();
+        totalRegistros = data.total;
+        document.getElementById('totalBadge').textContent = `${data.total} registros`;
+
+        const container = document.getElementById('auditoriaList');
+        if (data.registros.length === 0) {
+          container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><h4>Nenhum registro</h4><p>As movimentações aparecerão aqui</p></div>';
+          return;
+        }
+
+        const CAMPOS_LABELS = {
+          serie_equipamento: 'Série Equipamento', serie_ux: 'Série UX', status_wxp: 'Status WXP',
+          localidade_vli: 'Localidade VLI', setor: 'Setor', status_geral: 'Status Geral',
+          evidencias_instalacoes: 'Evidências Instalações', status_servicenow: 'Status ServiceNow',
+          chamado_servicenow: 'Chamado ServiceNow', especificacao_servicenow: 'Especificação ServiceNow',
+          tipo_equipamento: 'Tipo Equipamento', modelo: 'Modelo', item: 'Item', nf: 'NF', comentario: 'Comentário'
+        };
+        container.innerHTML = data.registros.map(r => {
+          const dadosAnteriores = r.dados_anteriores ? JSON.parse(r.dados_anteriores) : null;
+          const dadosNovos = r.dados_novos ? JSON.parse(r.dados_novos) : null;
+          let detalhes = '';
+          if (dadosAnteriores && dadosNovos) {
+            const diffs = Object.entries(dadosNovos).filter(([k, v]) => dadosAnteriores[k] != v && CAMPOS_LABELS[k]);
+            if (diffs.length > 0) {
+              detalhes = diffs.map(([k, v]) => {
+                const label = CAMPOS_LABELS[k] || k;
+                const oldVal = dadosAnteriores[k] || '-';
+                const newVal = v || '-';
+                return `<div class="audit-diff"><span class="audit-diff-label">${label}</span><span class="audit-diff-old">${oldVal}</span><span class="audit-diff-arrow">→</span><span class="audit-diff-new">${newVal}</span></div>`;
+              }).join('');
+            }
+          }
+          const icones = { CRIACAO: '➕', ALTERACAO: '✏️', EXCLUSAO: '🗑️' };
+          const labels = { CRIACAO: 'CRIAÇÃO', ALTERACAO: 'ALTERAÇÃO', EXCLUSAO: 'EXCLUSÃO' };
+          const icone = icones[r.acao] || '📝';
+          return `<div class="audit-item audit-${r.acao.toLowerCase()}">
+            <div class="audit-item-line"></div>
+            <div class="audit-item-icon">${icone}</div>
+            <div class="audit-item-body">
+              <div class="audit-item-header">
+                <span class="audit-badge audit-badge-${r.acao.toLowerCase()}">${labels[r.acao] || r.acao}</span>
+                <span class="audit-item-user">${r.usuario_nome}</span>
+                <span class="audit-item-date">${new Date(r.created_at).toLocaleString('pt-BR')}</span>
+              </div>
+              ${r.justificativa ? `<div class="audit-item-just">“${r.justificativa}”</div>` : ''}
+              ${detalhes ? `<div class="audit-item-diffs">${detalhes}</div>` : ''}
+            </div>
+          </div>`;
+        }).join('');
+
+        const totalPaginas = Math.ceil(totalRegistros / 50);
+        document.getElementById('infoPagina').textContent = `Página ${paginaAtual} de ${totalPaginas || 1}`;
+        document.getElementById('btnAnterior').disabled = paginaAtual <= 1;
+        document.getElementById('btnProximo').disabled = paginaAtual >= totalPaginas;
+      } catch (err) {
+        console.error('Erro ao carregar auditoria:', err);
+      }
+    }
+
+    function mudarPagina(direcao) {
+      paginaAtual += direcao;
+      carregarAuditoria(false);
+    }
+
+    async function exportarAuditoria() {
+      try {
+        const filtros = getFiltrosAudit().replace('&', '');
+        const url = `/api/exportar/auditoria${filtros ? '?' + filtros : ''}`;
+        const res = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        if (!res.ok) { mostrarToast('Erro ao exportar', 'error'); return; }
+        const blob = await res.blob();
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `auditoria_${new Date().toISOString().slice(0,10)}.xlsx`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+        mostrarToast('Relatório exportado com sucesso!');
+      } catch (err) { mostrarToast('Erro ao exportar', 'error'); }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      verificarAuth();
+      carregarAuditoria();
+      const user = getUsuario();
+      const navUsers = document.getElementById('navUsuarios');
+      if (navUsers) navUsers.style.display = user && user.id === 1 ? '' : 'none';
+    });
+
+    function getUsuario() {
+      try { return JSON.parse(sessionStorage.getItem('usuario')) || {}; } catch { return {}; }
+    }
+
+    async function abrirModalUsuarios() {
+      const user = getUsuario();
+      if (!user || user.id !== 1) { mostrarToast('Acesso restrito', 'error'); return; }
+      abrirModal('modalUsuarios');
+      await carregarUsuarios();
+    }
+
+    async function carregarUsuarios() {
+      try {
+        const res = await fetch('/api/auth/usuarios', {
+          headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        if (!res.ok) return;
+        const usuarios = await res.json();
+        const tbody = document.getElementById('tabelaUsuarios');
+        tbody.innerHTML = usuarios.map(u =>
+          `<tr id="userRow${u.id}"><td>${u.id}</td><td>${u.username}</td><td>${u.nome}</td><td>${new Date(u.created_at).toLocaleDateString('pt-BR')}</td><td><button class="btn btn-sm btn-outline" onclick="resetarSenha(${u.id})">Resetar Senha</button></td></tr>`
+        ).join('');
+      } catch (err) { console.error(err); }
+    }
+
+    async function resetarSenha(userId) {
+      const row = document.getElementById(`userRow${userId}`);
+      if (!row) return;
+      const cell = row.cells[4];
+      cell.innerHTML = '<input type="password" id="novaSenhaInput" placeholder="Nova senha" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;background:var(--bg);color:var(--text);width:140px;"> <button class="btn btn-sm btn-primary" onclick="confirmarResetSenha(' + userId + ')">Confirmar</button> <button class="btn btn-sm btn-outline" onclick="carregarUsuarios()">Cancelar</button>';
+      document.getElementById('novaSenhaInput').focus();
+    }
+
+    async function confirmarResetSenha(userId) {
+      const input = document.getElementById('novaSenhaInput');
+      const newPassword = input.value.trim();
+      if (!newPassword || newPassword.length < 4) { mostrarToast('Senha deve ter no mínimo 4 caracteres', 'error'); return; }
+      try {
+        const res = await fetch('/api/auth/reset-password', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+          body: JSON.stringify({ userId, newPassword })
+        });
+        const data = await res.json();
+        if (!res.ok) { mostrarToast(data.erro, 'error'); return; }
+        mostrarToast('Senha redefinida com sucesso!');
+        await carregarUsuarios();
+      } catch (err) { mostrarToast('Erro ao resetar senha', 'error'); }
+    }
+
+    async function criarUsuario() {
+      const username = document.getElementById('inputNovoUser').value.trim();
+      const nome = document.getElementById('inputNovoNome').value.trim();
+      const password = document.getElementById('inputNovoPass').value.trim();
+      const msg = document.getElementById('msgUsuario');
+
+      if (!username || !nome || !password) { msg.innerHTML = '<span style="color:#e74c3c;">Preencha todos os campos</span>'; return; }
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+          body: JSON.stringify({ username, password, nome })
+        });
+        const data = await res.json();
+        if (!res.ok) { msg.innerHTML = `<span style="color:#e74c3c;">${data.erro}</span>`; return; }
+        msg.innerHTML = `<span style="color:#2ecc71;">${data.mensagem}</span>`;
+        document.getElementById('inputNovoUser').value = '';
+        document.getElementById('inputNovoNome').value = '';
+        document.getElementById('inputNovoPass').value = '';
+        await carregarUsuarios();
+      } catch (err) { msg.innerHTML = '<span style="color:#e74c3c;">Erro ao criar usuário</span>'; }
+    }
+  </script>
+</body>
+</html>

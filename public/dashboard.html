@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Gestão de Ativos HAAS VLI</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="logo">
+        <div class="brand">
+          <div class="brand-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <span>Gestão de Ativos HAAS VLI</span>
+        </div>
+        <span class="sub">Painel de Controle</span>
+      </div>
+      <nav>
+        <a href="/dashboard.html" class="ativo">
+          <div class="nav-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          </div>
+          <span>Dashboard</span>
+        </a>
+        <a href="/ativos.html">
+          <div class="nav-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+          </div>
+          <span>Ativos</span>
+        </a>
+        <a href="/auditoria.html">
+          <div class="nav-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <span>Auditoria</span>
+        </a>
+        <a href="#" class="admin-only" id="navUsuarios" onclick="abrirModalUsuarios();return false;" style="display:none;">
+          <div class="nav-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <span>Usuários</span>
+        </a>
+      </nav>
+      <div class="user-info">
+        <div class="user-name" id="userName"></div>
+        <span class="perfil-badge" id="perfilBadge"></span>
+      </div>
+      <a href="#" class="theme-btn" id="loginBtn" style="display:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        <span>Fazer Login</span>
+      </a>
+      <a href="#" class="theme-btn" id="themeBtn">
+        <svg class="theme-icon-light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span id="themeLabel">Tema Escuro</span>
+      </a>
+      <a href="#" class="logout-btn" id="logoutBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Sair</span>
+      </a>
+    </aside>
+
+    <main class="main-content">
+      <div class="header-bar">
+        <h2>
+          Dashboard
+          <span class="badge" id="totalAtivosBadge">0 ativos</span>
+          <span class="live-indicator"><span class="live-dot"></span> AO VIVO</span>
+        </h2>
+        <div class="acoes">
+          <button class="btn btn-primary admin-only" onclick="abrirModalNovoDash()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            Novo Ativo
+          </button>
+          <button class="btn btn-info" onclick="window.location.href='/ativos.html'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="22" cy="22" r="2"/><circle cx="11" cy="13" r="8"/></svg>
+            Gerenciar Ativos
+          </button>
+        </div>
+      </div>
+
+      <div class="dashboard-grid" id="statsCards">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <div class="numero" id="totalGeral">-</div>
+          <div class="rotulo">Total de Ativos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div class="numero" id="emOperacao">-</div>
+          <div class="rotulo">Em Operação</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          </div>
+          <div class="numero" id="emEstoque">-</div>
+          <div class="rotulo">Em Estoque</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="numero" id="emManutencao">-</div>
+          <div class="rotulo">Em Manutenção</div>
+        </div>
+        <div class="stat-card" id="cardAdvertencia" onclick="abrirModalAdvertencias()" style="cursor:pointer;">
+          <div class="stat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <div class="numero" id="totalAdvertencias">-</div>
+          <div class="rotulo">Advertência</div>
+        </div>
+      </div>
+
+      <div class="filtros-bar">
+        <div class="filtro-group">
+          <label>Localidade VLI</label>
+          <input type="text" id="filtroLocalidade" placeholder="Digite ou selecione..." autocomplete="off">
+        </div>
+        <div class="filtro-group">
+          <label>Status WXP</label>
+          <select id="filtroStatusWxp"><option value="">Todos</option></select>
+        </div>
+        <div class="filtro-group">
+          <label>Status ServiceNow</label>
+          <select id="filtroStatusSN"><option value="">Todos</option></select>
+        </div>
+        <div class="filtro-group">
+          <label>Status Geral</label>
+          <select id="filtroStatus"><option value="">Todos</option></select>
+        </div>
+        <div class="filtro-group">
+          <label>Setor</label>
+          <select id="filtroSetorDash"><option value="">Todos</option></select>
+        </div>
+        <div class="filtro-group">
+          <label>Tipo Equipamento</label>
+          <select id="filtroTipo"><option value="">Todos</option></select>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="aplicarFiltros()">Filtrar</button>
+        <button class="btn btn-outline btn-sm" onclick="limparFiltros()">Limpar</button>
+      </div>
+
+      <div class="chart-container" style="grid-column:1/-1;margin-bottom:24px;">
+        <h4>Tendência de Movimentações (12 meses)</h4>
+        <canvas id="chartTendencias" style="max-height:200px;"></canvas>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-container">
+          <h4>Status Geral</h4>
+          <canvas id="chartStatus"></canvas>
+        </div>
+        <div class="chart-container">
+          <h4>Equipamentos por Tipo</h4>
+          <canvas id="chartTipo"></canvas>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-container">
+          <h4>Por Localidade</h4>
+          <canvas id="chartLocalidade"></canvas>
+        </div>
+        <div class="chart-container">
+          <div class="card-header">
+            <h4>Movimentações em Tempo Real</h4>
+            <span class="live-indicator"><span class="live-dot"></span> AO VIVO</span>
+          </div>
+          <div class="realtime-feed" id="realtimeFeed">
+            <div class="empty-state" style="padding:20px;">
+              <p>Aguardando movimentações...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="resultadosFiltro" style="display:none;">
+        <div class="card-header">
+          <h3>Ativos Filtrados</h3>
+          <span class="badge-count" id="resultadosCount">0</span>
+        </div>
+        <div class="tabela-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Série</th>
+                <th>UX</th>
+                <th>Status WXP</th>
+                <th>Status SN</th>
+                <th>Status Geral</th>
+                <th>Localidade</th>
+                <th>Tipo</th>
+                <th>Modelo</th>
+                <th>Data</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="resultadosTabela"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:16px;text-align:center;">
+          <button class="btn btn-outline btn-sm" onclick="window.location.href='/ativos.html'">
+            Ver todos no gerenciador
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-overlay" id="modalDetalhesDash">
+    <div class="modal" style="max-width:680px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+        <h3 style="margin-bottom:0;">Detalhes do Ativo</h3>
+        <span id="dashDetalheId" style="font-size:12px;color:var(--text-muted);background:var(--border);padding:4px 12px;border-radius:20px;">#0</span>
+      </div>
+      <div id="dashDetalheConteudo" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"></div>
+      <div style="margin-top:20px;display:flex;align-items:center;gap:20px;padding-top:16px;border-top:1px solid var(--border);">
+        <div id="dashQrCode" style="text-align:center;">
+          <img id="dashQrImg" src="" alt="QR Code" style="width:100px;height:100px;border-radius:8px;border:2px solid var(--border);">
+          <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">QR do Ativo</div>
+        </div>
+        <div style="flex:1;font-size:12px;color:var(--text-secondary);">
+          Escaneie o QR Code para acessar rapidamente os detalhes deste ativo.
+        </div>
+      </div>
+      <div class="form-buttons" style="margin-top:16px;">
+        <button class="btn btn-outline" onclick="fecharModal('modalDetalhesDash')">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalEditarDash">
+    <div class="modal">
+      <h3>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+        <span>Editar Ativo</span>
+      </h3>
+      <div class="form-row">
+        <div class="form-group"><label>Série Equipamento</label><input type="text" id="dEdit_serie_equipamento"></div>
+        <div class="form-group"><label>Série UX</label><input type="text" id="dEdit_serie_ux"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Status WXP</label><input type="text" id="dEdit_status_wxp"></div>
+        <div class="form-group"><label>Localidade VLI</label><input type="text" id="dEdit_localidade_vli"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Setor</label><input type="text" id="dEdit_setor"></div>
+        <div class="form-group"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Status Geral</label>
+          <select id="dEdit_status_geral">
+            <option value="">Selecione...</option>
+            <option>Em Operação</option><option>Em Estoque(-60Dias)</option>
+            <option>Em Estoque(+60Dias)</option><option>Reservado</option>
+            <option>Backup</option><option>Estoque TI VLI</option>
+            <option>Homologação</option><option>Processo de Entrega</option>
+            <option>Estoque Não Localizado</option><option>Em Manutenção</option>
+            <option>Backup em Utilização</option><option>SAP Configurado</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Evidências Instalações (Fotos e check list)</label>
+          <select id="dEdit_evidencias_instalacoes">
+            <option value="">Selecione...</option><option>Pendente</option><option>Enviado</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Status ServiceNow</label><input type="text" id="dEdit_status_servicenow"></div>
+        <div class="form-group"><label>Chamado ServiceNOW</label><input type="text" id="dEdit_chamado_servicenow"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Especificação ServiceNow</label>
+          <select id="dEdit_especificacao_servicenow">
+            <option value="">Selecione...</option>
+            <option>Rollout</option><option>Projeto SAT</option><option>Backup</option>
+            <option>Reservado</option><option>Homologação</option><option>Aquisição</option><option>HD</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Tipo Equipamento</label>
+          <select id="dEdit_tipo_equipamento">
+            <option value="">Selecione...</option>
+            <option>Monitor</option><option>Desk Alto Desempenho</option>
+            <option>Desk Staff Geral</option><option>Note EliteBook</option>
+            <option>Note Staff Geral</option><option>Note Alto Desempenho</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group full"><label>Modelo</label>
+          <select id="dEdit_modelo">
+            <option value="">Selecione...</option>
+            <option>HP MONITOR P24A G5 23.8 FHD/HDMI/VGA/DISPLAYPORT/USB</option>
+            <option>HP PRODESK 400 G9 SFF i5-13500 16GB RAM 512GB SSD WL</option>
+            <option>HP - PRO 400 G9 SFF i5-14500 16GB RAM 256GB RAM</option>
+            <option>HP ED 800 G9 SFF I7-13700 16GB/512GB A400 4GB VPRO</option>
+            <option>HP PROBOOK 440 G11 U5-125U 16GBRAM 512GBSSD 14 WUXGA</option>
+            <option>HP PROBOOK 440 G11 U5-125U 16GB/ 512GB 14 WUXGA</option>
+            <option>EB XFG1I 14 U7-258V 32GB/1TB 14 WUXGA TS BL SV</option>
+            <option>HP PROBOOK 440 G11 U7-155H 32GB 1TB   RTX2050</option>
+            <option>HP EliteBook X Flip G1i 14 inch</option>
+            <option>Notebook Next Gen AI PC</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Item</label><input type="text" id="dEdit_item"></div>
+        <div class="form-group"><label>NF</label><input type="text" id="dEdit_nf"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group full"><label>Comentário</label><textarea id="dEdit_comentario" rows="3"></textarea></div>
+      </div>
+      <div class="form-buttons">
+        <button class="btn btn-outline" onclick="fecharModal('modalEditarDash')">Cancelar</button>
+        <button class="btn btn-primary" onclick="salvarEdicaoDash()">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalJustificativaDash">
+    <div class="modal" style="max-width:450px;">
+      <h3>Justificativa Necessária</h3>
+      <p style="color:var(--text-secondary);font-size:13px;margin-bottom:12px;">Informe a justificativa para esta operação:</p>
+      <div class="form-group">
+        <textarea id="justificativaInputDash" placeholder="Digite a justificativa..." rows="3" style="min-height:80px;"></textarea>
+      </div>
+      <div class="form-buttons">
+        <button class="btn btn-outline" onclick="fecharModal('modalJustificativaDash')">Cancelar</button>
+        <button class="btn btn-primary" onclick="confirmarJustificativaDash()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalConfirmarExclusaoDash">
+    <div class="modal" style="max-width:440px;">
+      <h3 style="margin-bottom:20px;">Confirmar Exclusão</h3>
+      <p style="margin-bottom:16px;color:var(--text-secondary);font-size:14px;">
+        Digite o <strong>número de série</strong> do ativo para confirmar a exclusão:
+      </p>
+      <div class="form-group" style="margin-bottom:16px;">
+        <input type="text" id="inputSerieExclusaoDash" placeholder="Número de série..." style="width:100%;padding:10px 14px;border:1.5px solid var(--danger);border-radius:var(--radius-sm);font-size:14px;background:var(--bg);color:var(--text);outline:none;">
+      </div>
+      <p id="erroSerieExclusaoDash" style="color:var(--danger);font-size:13px;display:none;margin-bottom:12px;">Série incorreta. Tente novamente.</p>
+      <div class="form-buttons">
+        <button class="btn btn-outline" onclick="fecharModal('modalConfirmarExclusaoDash')">Cancelar</button>
+        <button class="btn btn-danger" onclick="confirmarSerieExclusaoDash()">Confirmar Exclusão</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalAdvertencias">
+    <div class="modal" style="max-width:800px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="margin:0;">Advertências - Inconsistências de Status</h3>
+        <button class="btn btn-outline" onclick="fecharModal('modalAdvertencias')" style="padding:6px 14px;">Fechar</button>
+      </div>
+      <div style="max-height:400px;overflow-y:auto;">
+        <table class="table">
+          <thead><tr><th>Série</th><th>Localidade</th><th>Status WXP</th><th>Status SN</th><th>Status Geral</th><th>Problema</th></tr></thead>
+          <tbody id="advertenciasTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalUsuarios">
+    <div class="modal" style="max-width:550px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="margin:0;">Gerenciar Usuários</h3>
+        <button class="btn btn-outline" onclick="fecharModal('modalUsuarios')" style="padding:6px 14px;">Fechar</button>
+      </div>
+      <div style="margin-bottom:16px;display:flex;gap:8px;">
+        <input type="text" id="inputNovoUser" placeholder="Login" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;background:var(--bg);color:var(--text);">
+        <input type="text" id="inputNovoNome" placeholder="Nome completo" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;background:var(--bg);color:var(--text);">
+        <input type="password" id="inputNovoPass" placeholder="Senha" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;background:var(--bg);color:var(--text);">
+        <button class="btn btn-primary btn-sm" onclick="criarUsuario()">Criar</button>
+      </div>
+      <div id="msgUsuario" style="font-size:13px;margin-bottom:12px;"></div>
+      <div style="max-height:300px;overflow-y:auto;">
+        <table class="table">
+          <thead><tr><th>#</th><th>Login</th><th>Nome</th><th>Criado em</th><th>Ações</th></tr></thead>
+          <tbody id="tabelaUsuarios"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalLogin">
+    <div class="modal" style="max-width:400px;">
+      <h3 style="text-align:center;">Acessar Sistema</h3>
+      <form id="loginModalForm">
+        <div class="form-group">
+          <label>Usuário</label>
+          <input type="text" id="loginModalUser" placeholder="Digite seu usuário" required autofocus>
+        </div>
+        <div class="form-group">
+          <label>Senha</label>
+          <input type="password" id="loginModalPass" placeholder="Digite sua senha" required>
+        </div>
+        <div class="login-error" id="loginModalError" style="display:none;"></div>
+        <div class="form-buttons">
+          <button type="button" class="btn btn-outline" onclick="fecharModal('modalLogin')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Entrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <input type="hidden" id="loginModalCallback" value="0">
+  <div class="toast-container" id="toastContainer"></div>
+
+  <style>
+    .dash-detail-item { background:var(--table-stripe);padding:10px 12px;border-radius:6px;border:1px solid var(--border); }
+    .dash-detail-item label { display:block;font-size:10px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.3px;margin-bottom:2px; }
+    .dash-detail-item span { font-size:13px;color:var(--text);font-weight:500;word-break:break-word; }
+    .dash-detail-item.full { grid-column:1/-1; }
+  </style>
+
+  <script src="/js/main.js?v=3"></script>
+  <script src="/js/dashboard.js?v=3"></script>
+</body>
+</html>
