@@ -7,7 +7,7 @@ const { sseHandler } = require('./events');
 
 const app = express();
 
-const tempDir = process.env.TEMP_DIR || path.join(__dirname, 'temp_uploads');
+const tempDir = process.env.TEMP_DIR || (process.env.LAMBDA_TASK_ROOT ? '/tmp/temp_uploads' : path.join(__dirname, 'temp_uploads'));
 if (!fs.existsSync(tempDir)) {
   try { fs.mkdirSync(tempDir, { recursive: true }); } catch (e) {}
 }

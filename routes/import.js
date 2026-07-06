@@ -8,8 +8,9 @@ const { broadcast } = require('../events');
 
 const router = express.Router();
 
+const tempDir = process.env.TEMP_DIR || (process.env.LAMBDA_TASK_ROOT ? '/tmp/temp_uploads' : path.join(__dirname, '..', 'temp_uploads'));
 const upload = multer({
-  dest: path.join(__dirname, '..', 'temp_uploads'),
+  dest: tempDir,
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
