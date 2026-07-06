@@ -1,53 +1,62 @@
 const path = require('path');
 const bcrypt = require('bcryptjs');
+const { execSync } = require('child_process');
 
 let db;
 
+function parseTursoResult(result) {
+  if (!result) return { rows: [], columns: [], affectedRowCount: 0, lastInsertRowid: null };
+  const cols = (result.cols || []).map(c => c.name);
+  const rows = (result.rows || []).map(row =>
+    row.map(val => val && val.type === 'integer' ? Number(val.value) : (val ? val.value : val))
+  );
+  return {
+    columns: cols,
+    rows,
+    affectedRowCount: Number(result.affected_row_count || 0),
+    lastInsertRowid: Number(result.last_insert_rowid || 0)
+  };
+}
+
 function createTursoClient(url, authToken) {
-  const syncRequest = require('sync-request');
-  const dbName = url.replace('libsql://', '').replace('.turso.io', '');
-  const baseUrl = `https://${dbName}.turso.io/v2/pipeline`;
+  const scriptPath = path.join(__dirname, 'scripts', 'turso-exec.js');
 
   function execRequest(sql, params) {
-    const body = JSON.stringify({
-      requests: [{ type: "execute", stmt: { sql, args: params || [] } }]
-    });
-    const res = syncRequest('POST', baseUrl, {
-      headers: {
-        'Authorization': `Bearer ${authToken}`,
-        'Content-Type': 'application/json'
-      },
-      body
-    });
-    const json = JSON.parse(res.body.toString('utf-8'));
+    const input = JSON.stringify({ sql, args: params.filter(p => p !== undefined) });
+    const opts = {
+      env: { ...process.env, TURSO_DATABASE_URL: url, TURSO_AUTH_TOKEN: authToken },
+      timeout: 20000,
+      stdio: 'pipe',
+      input
+    };
+    const stdout = execSync(`node "${scriptPath}"`, opts);
+    const json = JSON.parse(stdout.toString('utf-8'));
     const result = json.results?.[0]?.response?.result;
     if (!result) {
       const errMsg = json.results?.[0]?.error?.message || 'Erro Turso';
       throw new Error(errMsg);
     }
-    return result;
+    return parseTursoResult(result);
   }
 
   return {
     prepare(sql) {
       return {
         run(...params) {
-          const result = execRequest(sql, params.filter(p => p !== undefined));
-          return { changes: Number(result.affectedRowCount || 0), lastInsertRowid: Number(result.lastInsertRowid || 0) };
+          const r = execRequest(sql, params.filter(p => p !== undefined));
+          return { changes: r.affectedRowCount, lastInsertRowid: r.lastInsertRowid };
         },
         get(...params) {
-          const result = execRequest(sql, params.filter(p => p !== undefined));
-          return result.rows?.[0] || undefined;
+          const r = execRequest(sql, params.filter(p => p !== undefined));
+          return r.rows[0] || undefined;
         },
         all(...params) {
-          const result = execRequest(sql, params.filter(p => p !== undefined));
-          return result.rows || [];
+          const r = execRequest(sql, params.filter(p => p !== undefined));
+          return r.rows || [];
         }
       };
     },
-    exec(sql) {
-      execRequest(sql, []);
-    },
+    exec(sql) { execRequest(sql, []); },
     pragma() {},
     close() {}
   };
@@ -57,7 +66,26 @@ function getDatabase() {
   if (db) return db;
 
   if (process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN) {
-    console.log('Conectado ao Turso Database (sync-request)');
+    console.log('Conectado ao Turso Database (execSync)');
+    db = createTursoClient(process.env.TURSO_DATABASE_URL, process.env.TURSO_AUTH_TOKEN);
+  } else {
+    const Database = require('better-sqlite3');
+    db = new Database(path.join(__dirname, 'database.sqlite'));
+    db.pragma('journal_mode = WAL');
+    db.pragma('foreign_keys = ON');
+    console.log('Conectado ao SQLite local');
+  }
+
+  initializeDatabase();
+  migrateDatabase();
+  return db;
+}
+
+function getDatabase() {
+  if (db) return db;
+
+  if (process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN) {
+    console.log('Conectado ao Turso Database (execSync)');
     db = createTursoClient(process.env.TURSO_DATABASE_URL, process.env.TURSO_AUTH_TOKEN);
   } else {
     const Database = require('better-sqlite3');
