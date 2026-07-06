@@ -49,8 +49,8 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
-  console.error('Erro:', err.message);
-  res.status(500).json({ erro: 'Erro interno do servidor' });
+  console.error('Erro:', err.message, err.stack);
+  res.status(500).json({ erro: 'Erro interno do servidor', detalhe: err.message });
 });
 
 module.exports = app;
