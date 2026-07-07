@@ -2,6 +2,7 @@ let paginaAtual = 1;
 let totalAtivos = 0;
 let ativoEditandoId = null;
 let ultimoAtivoVisualizado = null;
+let inputLocalidadeAtivo = null;
 
 const STATUS_GERAIS = ['Em Operação', 'Em Estoque(-60Dias)', 'Em Estoque(+60Dias)', 'Reservado', 'Backup', 'Estoque TI VLI', 'Homologação', 'Processo de Entrega', 'Estoque Não Localizado', 'Em Manutenção', 'Backup em Utilização', 'SAP Configurado'];
 
@@ -401,6 +402,7 @@ function abrirModalImportar() {
 }
 
 function mostrarSugestoes(input) {
+  inputLocalidadeAtivo = input;
   let container = document.getElementById('sugestoesLocalidade');
   if (!container) {
     container = document.createElement('div');
@@ -431,7 +433,7 @@ function mostrarSugestoes(input) {
 }
 
 function selecionarLocalidade(valor) {
-  const input = document.querySelector('input:focus') || document.getElementById('filtroLocalidade');
+  const input = inputLocalidadeAtivo || document.getElementById('filtroLocalidade');
   if (input) input.value = valor;
   const container = document.getElementById('sugestoesLocalidade');
   if (container) container.style.display = 'none';
