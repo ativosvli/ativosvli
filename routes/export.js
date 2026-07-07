@@ -5,7 +5,8 @@ const { autenticar } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get('/', autenticar, (req, res) => {
+router.get('/', autenticar, async (req, res) => {
+  try {
   const db = getDatabase();
   const usuario = req.usuario;
   const dataStr = new Date().toLocaleDateString('pt-BR');
@@ -91,6 +92,10 @@ router.get('/', autenticar, (req, res) => {
   }));
 
   res.json({ base64, nome: nomeArquivo });
+  } catch (err) {
+    console.error('ERRO EXPORT:', err.message, err.stack);
+    res.status(500).json({ erro: 'Erro ao exportar', detalhe: err.message });
+  }
 });
 
 module.exports = router;
