@@ -56,9 +56,9 @@ router.get('/', async (req, res) => {
   const totalAtivos = ativos.length;
 
   const infoHeader = [
-    { '': `Exportado por: ${usuario.nome}` },
-    { '': `Data: ${dataStr} às ${horaStr}` },
-    { '': `Total de registros: ${totalAtivos}` },
+    [`Exportado por: ${usuario.nome}`],
+    [`Data: ${dataStr} às ${horaStr}`],
+    [`Total de registros: ${totalAtivos}`],
   ];
 
   const dadosPlanilha = ativos.map(a => ({
