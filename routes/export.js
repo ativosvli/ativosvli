@@ -1,16 +1,26 @@
 const express = require('express');
 const XLSX = require('xlsx');
 const { getDatabase } = require('../database');
-const { autenticar } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get('/', autenticar, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-  const db = getDatabase();
-  const usuario = req.usuario;
+    // Auth manual para debug
+    const token = req.session?.token || req.headers.authorization?.replace('Bearer ', '');
+    console.log('Export - session token:', !!req.session?.token, 'auth header:', !!req.headers.authorization);
+    if (!token) {
+      return res.status(401).json({ erro: 'Não autenticado - nenhum token encontrado' });
+    }
+    let usuario;
+    try {
+      usuario = require('jsonwebtoken').verify(token, process.env.JWT_SECRET || 'jwt-gestao-key-2024');
+    } catch (e) {
+      return res.status(401).json({ erro: 'Token inválido: ' + e.message });
+    }
   const dataStr = new Date().toLocaleDateString('pt-BR');
   const horaStr = new Date().toLocaleTimeString('pt-BR');
+  const db = getDatabase();
 
   let query = 'SELECT serie_equipamento, serie_ux, status_wxp, localidade_vli, status_geral, evidencias_instalacoes, status_servicenow, chamado_servicenow, especificacao_servicenow, tipo_equipamento, modelo, nf, comentario FROM ativos';
   let params = [];
