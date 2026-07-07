@@ -95,13 +95,13 @@ function renderTabela(ativos) {
     const sc = getStatusClass(a.status_geral);
 
     return `<tr>
-      <td><strong>${a.serie_equipamento || '-'}</strong></td>
+      <td>${a.localidade_vli || '-'}</td>
       <td>${a.serie_ux || '-'}</td>
       <td>${a.status_wxp || '-'}</td>
-      <td>${a.status_servicenow || '-'}</td>
       <td><span class="status-badge ${sc}">${a.status_geral || '-'}</span></td>
+      <td>${a.status_servicenow || '-'}</td>
       <td>${a.especificacao_servicenow || '-'}</td>
-      <td>${a.localidade_vli || '-'}</td>
+      <td><strong>${a.serie_equipamento || '-'}</strong></td>
       <td>${a.tipo_equipamento || '-'}</td>
       <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${a.modelo || ''}">${a.modelo ? a.modelo.slice(0, 30) + '...' : '-'}</td>
       <td style="white-space:nowrap;">${a.created_at ? new Date(a.created_at).toLocaleDateString('pt-BR') : '-'}</td>
