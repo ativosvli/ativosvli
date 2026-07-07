@@ -2,7 +2,6 @@ let paginaAtual = 1;
 let totalAtivos = 0;
 let ativoEditandoId = null;
 let ultimoAtivoVisualizado = null;
-let inputLocalidadeAtivo = null;
 
 const STATUS_GERAIS = ['Em Operação', 'Em Estoque(-60Dias)', 'Em Estoque(+60Dias)', 'Reservado', 'Backup', 'Estoque TI VLI', 'Homologação', 'Processo de Entrega', 'Estoque Não Localizado', 'Em Manutenção', 'Backup em Utilização', 'SAP Configurado'];
 
@@ -402,7 +401,6 @@ function abrirModalImportar() {
 }
 
 function mostrarSugestoes(input) {
-  inputLocalidadeAtivo = input;
   let container = document.getElementById('sugestoesLocalidade');
   if (!container) {
     container = document.createElement('div');
@@ -410,7 +408,7 @@ function mostrarSugestoes(input) {
     container.style.cssText = 'position:fixed;max-height:200px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:6px;z-index:99999;box-shadow:0 8px 24px rgba(0,0,0,0.15);';
     document.body.appendChild(container);
   }
-  container._input = input;
+  container._inputId = input.id;
 
   const valor = input.value.toLowerCase().trim();
   const opcoes = input._opcoes || [];
@@ -435,10 +433,11 @@ function mostrarSugestoes(input) {
 
 function selecionarLocalidade(valor) {
   const container = document.getElementById('sugestoesLocalidade');
-  const input = (container && container._input) || inputLocalidadeAtivo || document.getElementById('filtroLocalidade');
-  if (input) input.value = valor;
-  if (container) container.style.display = 'none';
-  if (input && input.id === 'filtroLocalidade') carregarAtivos();
+  const input = container ? document.getElementById(container._inputId) : null;
+  if (!input) return;
+  input.value = valor;
+  container.style.display = 'none';
+  if (input.id === 'filtroLocalidade') carregarAtivos();
 }
 
 async function importarExcel() {

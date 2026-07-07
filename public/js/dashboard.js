@@ -1014,6 +1014,8 @@ function mostrarSugestoes(input) {
     document.body.appendChild(container);
   }
 
+  container._inputId = input.id;
+
   const valor = input.value.toLowerCase().trim();
   const opcoes = input._opcoes || [];
   const filtradas = valor ? opcoes.filter(o => o.toLowerCase().includes(valor)) : opcoes;
@@ -1036,9 +1038,11 @@ function mostrarSugestoes(input) {
 }
 
 function selecionarLocalidade(valor) {
-  const input = document.getElementById('filtroLocalidade');
-  input.value = valor;
   const container = document.getElementById('sugestoesLocalidade');
+  const inputId = container ? container._inputId : 'filtroLocalidade';
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  input.value = valor;
   if (container) container.style.display = 'none';
   if (typeof filtrosAtuais !== 'undefined') {
     filtrosAtuais.localidade_vli = valor;
