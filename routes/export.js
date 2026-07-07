@@ -22,9 +22,9 @@ router.get('/', async (req, res) => {
   const horaStr = new Date().toLocaleTimeString('pt-BR');
   const db = getDatabase();
 
-  let query = 'SELECT serie_equipamento, serie_ux, status_wxp, localidade_vli, status_geral, evidencias_instalacoes, status_servicenow, chamado_servicenow, especificacao_servicenow, tipo_equipamento, modelo, nf, comentario FROM ativos';
-  let params = [];
+  const colunas = 'serie_equipamento, serie_ux, status_wxp, localidade_vli, status_geral, evidencias_instalacoes, status_servicenow, chamado_servicenow, especificacao_servicenow, tipo_equipamento, modelo, nf, comentario';
   let where = [];
+  let params = [];
 
   if (req.query.status_geral) {
     where.push('status_geral = ?');
@@ -43,13 +43,15 @@ router.get('/', async (req, res) => {
     params.push(req.query.tipo_equipamento);
   }
 
-  if (where.length > 0) {
-    query += ' WHERE ' + where.join(' AND ');
+  const whereClause = where.length > 0 ? ' WHERE ' + where.join(' AND ') : '';
+  const totalCount = db.prepare(`SELECT COUNT(*) as total FROM ativos${whereClause}`).get(...params).total;
+
+  let ativos = [];
+  const pageSize = 500;
+  for (let page = 0; page * pageSize < totalCount; page++) {
+    const batch = db.prepare(`SELECT ${colunas} FROM ativos${whereClause} ORDER BY id DESC LIMIT ? OFFSET ?`).all(...params, pageSize, page * pageSize);
+    ativos = ativos.concat(batch);
   }
-
-  query += ' ORDER BY id DESC';
-
-  const ativos = db.prepare(query).all(...params);
 
   const totalAtivos = ativos.length;
 
