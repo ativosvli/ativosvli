@@ -185,7 +185,11 @@
           const dadosAnteriores = r.dados_anteriores ? JSON.parse(r.dados_anteriores) : null;
           const dadosNovos = r.dados_novos ? JSON.parse(r.dados_novos) : null;
           let detalhes = '';
-          if (dadosAnteriores && dadosNovos) {
+          if (r.acao === 'EXCLUSAO' && dadosAnteriores) {
+            detalhes = Object.entries(CAMPOS_LABELS).filter(([k]) => dadosAnteriores[k]).map(([k, label]) => {
+              return `<div class="audit-diff"><span class="audit-diff-label">${label}</span><span class="audit-diff-old" style="color:#e74c3c;">${dadosAnteriores[k]}</span></div>`;
+            }).join('');
+          } else if (dadosAnteriores && dadosNovos) {
             const diffs = Object.entries(dadosNovos).filter(([k, v]) => dadosAnteriores[k] != v && CAMPOS_LABELS[k]);
             if (diffs.length > 0) {
               detalhes = diffs.map(([k, v]) => {
