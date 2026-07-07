@@ -36,7 +36,7 @@ function createTursoClient(url, authToken) {
 
   function execRequest(sql, params) {
     const body = JSON.stringify({
-      requests: [{ type: "execute", stmt: { sql, args: params.filter(p => p !== undefined).map(toTursoValue) } }]
+      requests: [{ type: "execute", stmt: { sql, args: params.map(p => toTursoValue(p ?? null)) } }]
     });
     const b64Body = Buffer.from(body).toString('base64');
     const code = `p=JSON.parse(Buffer.from(process.argv[1],'base64').toString());require('https').request({hostname:'${dbName}.turso.io',path:'/v2/pipeline',method:'POST',headers:{'Authorization':'Bearer ${authToken}','Content-Type':'application/json'}},r=>{let d='';r.on('data',c=>d+=c);r.on('end',()=>process.stdout.write(d))}).on('error',e=>{process.stderr.write(e.message);process.exit(1)}).end(JSON.stringify(p))`;
@@ -52,17 +52,30 @@ function createTursoClient(url, authToken) {
 
   return {
     prepare(sql) {
+      const namedParams = [...sql.matchAll(/@(\w+)/g)].map(m => m[1]);
       return {
         run(...params) {
-          const r = execRequest(sql, params.filter(p => p !== undefined));
+          let flat = params.filter(p => p !== undefined);
+          if (flat.length === 1 && typeof flat[0] === 'object' && !Array.isArray(flat[0]) && flat[0] !== null) {
+            flat = namedParams.map(k => flat[0][k]);
+          }
+          const r = execRequest(sql, flat);
           return { changes: r.affectedRowCount, lastInsertRowid: r.lastInsertRowid };
         },
         get(...params) {
-          const r = execRequest(sql, params.filter(p => p !== undefined));
+          let flat = params.filter(p => p !== undefined);
+          if (flat.length === 1 && typeof flat[0] === 'object' && !Array.isArray(flat[0]) && flat[0] !== null) {
+            flat = namedParams.map(k => flat[0][k]);
+          }
+          const r = execRequest(sql, flat);
           return r.rows[0] ? rowToObj(r.rows[0], r.columns) : undefined;
         },
         all(...params) {
-          const r = execRequest(sql, params.filter(p => p !== undefined));
+          let flat = params.filter(p => p !== undefined);
+          if (flat.length === 1 && typeof flat[0] === 'object' && !Array.isArray(flat[0]) && flat[0] !== null) {
+            flat = namedParams.map(k => flat[0][k]);
+          }
+          const r = execRequest(sql, flat);
           return r.rows.map(row => rowToObj(row, r.columns));
         }
       };

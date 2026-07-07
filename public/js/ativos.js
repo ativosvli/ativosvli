@@ -31,6 +31,19 @@ function carregarFiltrosDrop() {
       const o = document.createElement('option'); o.value = v; o.textContent = v;
       selTipo.appendChild(o);
     });
+
+    const localidades = data.localidades || [];
+    ['localidade_vli', 'dEdit_localidade_vli'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el._opcoes = localidades;
+        el.addEventListener('focus', function() { mostrarSugestoes(this); });
+        el.addEventListener('input', function() { mostrarSugestoes(this); });
+        el.addEventListener('blur', function() {
+          setTimeout(() => { const s = document.getElementById('sugestoesLocalidade'); if (s) s.remove(); }, 200);
+        });
+      }
+    });
   })
   .catch(() => {});
 }
@@ -418,11 +431,11 @@ function mostrarSugestoes(input) {
 }
 
 function selecionarLocalidade(valor) {
-  const input = document.getElementById('filtroLocalidade');
-  input.value = valor;
+  const input = document.querySelector('input:focus') || document.getElementById('filtroLocalidade');
+  if (input) input.value = valor;
   const container = document.getElementById('sugestoesLocalidade');
   if (container) container.style.display = 'none';
-  carregarAtivos();
+  if (input && input.id === 'filtroLocalidade') carregarAtivos();
 }
 
 async function importarExcel() {
