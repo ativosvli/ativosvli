@@ -427,7 +427,7 @@ function mostrarSugestoes(input) {
   container.innerHTML = filtradas.map(o =>
     `<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);transition:background 0.1s;"
       onmouseover="this.style.background='var(--accent-light)'" onmouseout="this.style.background=''"
-      onmousedown="event.preventDefault(); selecionarLocalidade('${o.replace(/'/g, "\\'")}')">${o}</div>`
+      onmousedown="event.stopPropagation(); document.getElementById('${input.id}').value='${o.replace(/'/g, "\\'")}'; document.getElementById('sugestoesLocalidade').style.display='none'">${o}</div>`
   ).join('');
 }
 
