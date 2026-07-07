@@ -41,7 +41,7 @@ function carregarFiltrosDrop() {
         el.addEventListener('focus', function() { mostrarSugestoes(this); });
         el.addEventListener('input', function() { mostrarSugestoes(this); });
         el.addEventListener('blur', function() {
-          setTimeout(() => { const s = document.getElementById('sugestoesLocalidade'); if (s) s.remove(); }, 200);
+          setTimeout(() => { const s = document.getElementById('sugestoesLocalidade'); if (s) s.style.display = 'none'; }, 200);
         });
       }
     });
@@ -410,6 +410,7 @@ function mostrarSugestoes(input) {
     container.style.cssText = 'position:fixed;max-height:200px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:6px;z-index:99999;box-shadow:0 8px 24px rgba(0,0,0,0.15);';
     document.body.appendChild(container);
   }
+  container._input = input;
 
   const valor = input.value.toLowerCase().trim();
   const opcoes = input._opcoes || [];
@@ -433,9 +434,9 @@ function mostrarSugestoes(input) {
 }
 
 function selecionarLocalidade(valor) {
-  const input = inputLocalidadeAtivo || document.getElementById('filtroLocalidade');
-  if (input) input.value = valor;
   const container = document.getElementById('sugestoesLocalidade');
+  const input = (container && container._input) || inputLocalidadeAtivo || document.getElementById('filtroLocalidade');
+  if (input) input.value = valor;
   if (container) container.style.display = 'none';
   if (input && input.id === 'filtroLocalidade') carregarAtivos();
 }
