@@ -50,11 +50,10 @@ router.get('/', (req, res) => {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Auditoria');
 
-  const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  const base64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+  const nome = `auditoria_${new Date().toISOString().slice(0, 10)}.xlsx`;
 
-  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-  res.setHeader('Content-Disposition', `attachment; filename=auditoria_${new Date().toISOString().slice(0, 10)}.xlsx`);
-  res.send(buffer);
+  res.json({ base64, nome });
 });
 
 module.exports = router;

@@ -79,7 +79,8 @@ router.get('/', autenticar, (req, res) => {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Ativos');
 
-  const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  const base64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+  const nomeArquivo = `ativos_${new Date().toISOString().slice(0, 10)}.xlsx`;
 
   db.prepare(`
     INSERT INTO auditoria (usuario_id, usuario_nome, acao, justificativa, dados_novos)
@@ -89,9 +90,7 @@ router.get('/', autenticar, (req, res) => {
     filtros: req.query
   }));
 
-  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-  res.setHeader('Content-Disposition', `attachment; filename=ativos_${new Date().toISOString().slice(0, 10)}.xlsx`);
-  res.send(buffer);
+  res.json({ base64, nome: nomeArquivo });
 });
 
 module.exports = router;

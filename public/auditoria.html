@@ -239,10 +239,12 @@
           headers: { 'Authorization': `Bearer ${getToken()}` }
         });
         if (!res.ok) { mostrarToast('Erro ao exportar', 'error'); return; }
-        const blob = await res.blob();
+        const json = await res.json();
+        const byteArray = Uint8Array.from(atob(json.base64), c => c.charCodeAt(0));
+        const blob = new Blob([byteArray], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `auditoria_${new Date().toISOString().slice(0,10)}.xlsx`;
+        link.download = json.nome || `auditoria_${new Date().toISOString().slice(0,10)}.xlsx`;
         link.click();
         URL.revokeObjectURL(link.href);
         mostrarToast('Relatório exportado com sucesso!');
