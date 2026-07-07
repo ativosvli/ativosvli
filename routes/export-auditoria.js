@@ -21,27 +21,33 @@ router.get('/', (req, res) => {
 
   const registros = db.prepare(query).all(...params);
 
+  const camposExclusao = ['serie_equipamento','serie_ux','status_wxp','localidade_vli','setor','status_geral','status_servicenow','tipo_equipamento','modelo','item','nf','comentario'];
+
   const dadosPlanilha = registros.map(r => {
     let serie = r.serie || 'N/A';
-    let detalhes = '';
-    if (r.acao === 'EXCLUSAO' && r.dados_anteriores) {
-      try {
-        const ant = JSON.parse(r.dados_anteriores);
-        serie = ant.serie_equipamento || ant.serie_ux || serie;
-        const campos = ['serie_equipamento','serie_ux','status_wxp','localidade_vli','setor','status_geral','status_servicenow','tipo_equipamento','modelo','item','nf','comentario'];
-        detalhes = campos.filter(k => ant[k]).map(k => `${k}: ${ant[k]}`).join('; ');
-      } catch (e) {}
-    }
-    return {
+    const linha = {
       'ID': r.id,
       'Data/Hora': new Date(r.created_at).toLocaleString('pt-BR'),
       'Usuário': r.usuario_nome || '',
       'Ação': r.acao === 'CRIACAO' ? 'Criação' : r.acao === 'ALTERACAO' ? 'Alteração' : r.acao === 'EXCLUSAO' ? 'Exclusão' : r.acao,
       'Ativo': serie,
       'Justificativa': r.justificativa || '',
-      'Ativo ID': r.ativo_id || '',
-      'Detalhes Exclusão': detalhes
+      'Ativo ID': r.ativo_id || ''
     };
+    if (r.acao === 'EXCLUSAO' && r.dados_anteriores) {
+      try {
+        const ant = JSON.parse(r.dados_anteriores);
+        if (ant.serie_equipamento || ant.serie_ux) {
+          linha['Ativo'] = ant.serie_equipamento || ant.serie_ux || serie;
+        }
+        for (const campo of camposExclusao) {
+          if (ant[campo] != null && ant[campo] !== '') {
+            linha[`Excluído - ${campo}`] = ant[campo];
+          }
+        }
+      } catch (e) {}
+    }
+    return linha;
   });
 
   const ws = XLSX.utils.json_to_sheet(dadosPlanilha);
