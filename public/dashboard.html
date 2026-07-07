@@ -112,12 +112,26 @@
           <div class="numero" id="emManutencao">-</div>
           <div class="rotulo">Em Manutenção</div>
         </div>
+        <div class="stat-card" onclick="carregarAtivosUXPendentes();document.getElementById('filtroStatus').value='UX Pendentes'" style="cursor:pointer;">
+          <div class="stat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="numero" id="uxPendentes">-</div>
+          <div class="rotulo">UX Pendentes</div>
+        </div>
+        <div class="stat-card" onclick="carregarAtivosWXPPendentes();document.getElementById('filtroStatus').value='WXP Pendentes'" style="cursor:pointer;">
+          <div class="stat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="numero" id="wxpPendentes">-</div>
+          <div class="rotulo">WXP Pendentes</div>
+        </div>
         <div class="stat-card" id="cardAdvertencia" onclick="abrirModalAdvertencias()" style="cursor:pointer;">
           <div class="stat-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           </div>
           <div class="numero" id="totalAdvertencias">-</div>
-          <div class="rotulo">Advertência</div>
+          <div class="rotulo">Divergências</div>
         </div>
       </div>
 
@@ -137,10 +151,6 @@
         <div class="filtro-group">
           <label>Status Geral</label>
           <select id="filtroStatus"><option value="">Todos</option></select>
-        </div>
-        <div class="filtro-group">
-          <label>Setor</label>
-          <select id="filtroSetorDash"><option value="">Todos</option></select>
         </div>
         <div class="filtro-group">
           <label>Tipo Equipamento</label>
@@ -172,6 +182,10 @@
           <canvas id="chartLocalidade"></canvas>
         </div>
         <div class="chart-container">
+          <h4>Especificação ServiceNow</h4>
+          <canvas id="chartEspecificacao"></canvas>
+        </div>
+        <div class="chart-container">
           <div class="card-header">
             <h4>Movimentações em Tempo Real</h4>
             <span class="live-indicator"><span class="live-dot"></span> AO VIVO</span>
@@ -194,7 +208,7 @@
             <thead>
               <tr>
                 <th>Série</th>
-                <th>UX</th>
+                <th>Status UX</th>
                 <th>Status WXP</th>
                 <th>Status SN</th>
                 <th>Status Geral</th>
@@ -247,10 +261,14 @@
       </h3>
       <div class="form-row">
         <div class="form-group"><label>Série Equipamento</label><input type="text" id="dEdit_serie_equipamento"></div>
-        <div class="form-group"><label>Série UX</label><input type="text" id="dEdit_serie_ux"></div>
+        <div class="form-group"><label>Status UX</label>
+          <select id="dEdit_serie_ux"><option value="">Selecione...</option><option>Cadastrado</option><option>Pendente</option></select>
+        </div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Status WXP</label><input type="text" id="dEdit_status_wxp"></div>
+        <div class="form-group"><label>Status WXP</label>
+          <select id="dEdit_status_wxp"><option value="">Selecione...</option><option>Cadastrado</option><option>Pendente</option></select>
+        </div>
         <div class="form-group"><label>Localidade VLI</label><input type="text" id="dEdit_localidade_vli"></div>
       </div>
       <div class="form-row">

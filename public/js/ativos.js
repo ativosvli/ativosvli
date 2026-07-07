@@ -1,9 +1,7 @@
 let paginaAtual = 1;
 let totalAtivos = 0;
 let ativoEditandoId = null;
-let debounceTimer = null;
 let ultimoAtivoVisualizado = null;
-let listaLocalidades = [];
 
 const STATUS_GERAIS = ['Em Operação', 'Em Estoque(-60Dias)', 'Em Estoque(+60Dias)', 'Reservado', 'Backup', 'Estoque TI VLI', 'Homologação', 'Processo de Entrega', 'Estoque Não Localizado', 'Em Manutenção', 'Backup em Utilização', 'SAP Configurado'];
 
@@ -28,82 +26,23 @@ function carregarFiltrosDrop() {
   })
   .then(r => r.json())
   .then(data => {
-    const localidades = data.localidades || [];
-    listaLocalidades = localidades;
-    const inpLocal = document.getElementById('filtroLocalidade');
-    inpLocal._opcoes = localidades;
-
-    inpLocal.addEventListener('focus', function() {
-      mostrarSugestoes(this);
-    });
-    inpLocal.addEventListener('input', function() {
-      mostrarSugestoes(this);
-    });
-    inpLocal.addEventListener('blur', function() {
-      setTimeout(() => {
-        const sugestoes = document.getElementById('sugestoesLocalidade');
-        if (sugestoes) sugestoes.remove();
-      }, 200);
-    });
-
-    const selSetor = document.getElementById('filtroSetor');
-    (data.setores || []).forEach(v => {
+    const selTipo = document.getElementById('filtroTipo');
+    (data.tipos || []).forEach(v => {
       const o = document.createElement('option'); o.value = v; o.textContent = v;
-      selSetor.appendChild(o);
+      selTipo.appendChild(o);
     });
-
-    const selWxp = document.getElementById('filtroStatusWxp');
-    (data.statusWxp || []).forEach(v => {
-      const o = document.createElement('option'); o.value = v; o.textContent = v;
-      selWxp.appendChild(o);
-    });
-
-    const selSN = document.getElementById('filtroStatusSN');
-    (data.statusServiceNow || []).forEach(v => {
-      const o = document.createElement('option'); o.value = v; o.textContent = v;
-      selSN.appendChild(o);
-    });
-
-    const formLocal = document.getElementById('localidade_vli');
-    if (formLocal) {
-      formLocal._opcoes = localidades;
-      formLocal.addEventListener('focus', function() { mostrarSugestoes(this); });
-      formLocal.addEventListener('input', function() { mostrarSugestoes(this); });
-      formLocal.addEventListener('blur', function() {
-        setTimeout(() => { const s = document.getElementById('sugestoesLocalidade'); if (s) s.remove(); }, 200);
-      });
-    }
   })
   .catch(() => {});
 }
 
-function debounceBusca() {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(carregarAtivos, 300);
-}
-
 async function carregarAtivos() {
   try {
-    const search = document.getElementById('searchInput').value;
     const status = document.getElementById('filtroStatus').value;
-    const statusWxp = document.getElementById('filtroStatusWxp').value;
-    const statusSN = document.getElementById('filtroStatusSN').value;
-    const localidade = document.getElementById('filtroLocalidade').value;
-    const setor = document.getElementById('filtroSetor').value;
     const tipo = document.getElementById('filtroTipo').value;
-    const dataInicio = document.getElementById('filtroDataInicio').value;
-    const dataFim = document.getElementById('filtroDataFim').value;
 
     let url = `/api/ativos?page=${paginaAtual}&limit=100`;
     if (status) url += `&status_geral=${encodeURIComponent(status)}`;
-    if (statusWxp) url += `&status_wxp=${encodeURIComponent(statusWxp)}`;
-    if (statusSN) url += `&status_servicenow=${encodeURIComponent(statusSN)}`;
-    if (localidade) url += `&localidade_vli=${encodeURIComponent(localidade)}`;
-    if (setor) url += `&setor=${encodeURIComponent(setor)}`;
     if (tipo) url += `&tipo_equipamento=${encodeURIComponent(tipo)}`;
-    if (search) url += `&search=${encodeURIComponent(search)}`;
-    if (dataInicio) url += `&data_inicio=${encodeURIComponent(dataInicio)}`;
-    if (dataFim) url += `&data_fim=${encodeURIComponent(dataFim)}`;
 
     const res = await fetch(url, {
       headers: { 'Authorization': `Bearer ${getToken()}` }
@@ -145,8 +84,8 @@ function renderTabela(ativos) {
       <td>${a.serie_ux || '-'}</td>
       <td>${a.status_wxp || '-'}</td>
       <td>${a.status_servicenow || '-'}</td>
-      <td>${a.especificacao_servicenow || '-'}</td>
       <td><span class="status-badge ${sc}">${a.status_geral || '-'}</span></td>
+      <td>${a.especificacao_servicenow || '-'}</td>
       <td>${a.localidade_vli || '-'}</td>
       <td>${a.tipo_equipamento || '-'}</td>
       <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${a.modelo || ''}">${a.modelo ? a.modelo.slice(0, 30) + '...' : '-'}</td>
@@ -163,15 +102,8 @@ function renderTabela(ativos) {
 }
 
 function limparFiltrosAtivos() {
-  document.getElementById('searchInput').value = '';
   document.getElementById('filtroStatus').value = '';
-  document.getElementById('filtroStatusWxp').value = '';
-  document.getElementById('filtroStatusSN').value = '';
-  document.getElementById('filtroLocalidade').value = '';
-  document.getElementById('filtroSetor').value = '';
   document.getElementById('filtroTipo').value = '';
-  document.getElementById('filtroDataInicio').value = '';
-  document.getElementById('filtroDataFim').value = '';
   paginaAtual = 1;
   carregarAtivos();
 }
@@ -524,15 +456,11 @@ async function importarExcel() {
 async function exportarExcel() {
   try {
     const status = document.getElementById('filtroStatus').value;
-    const localidade = document.getElementById('filtroLocalidade').value;
-    const setor = document.getElementById('filtroSetor').value;
     const tipo = document.getElementById('filtroTipo').value;
 
     let url = '/api/exportar';
     const params = [];
     if (status) params.push(`status_geral=${encodeURIComponent(status)}`);
-    if (localidade) params.push(`localidade_vli=${encodeURIComponent(localidade)}`);
-    if (setor) params.push(`setor=${encodeURIComponent(setor)}`);
     if (tipo) params.push(`tipo_equipamento=${encodeURIComponent(tipo)}`);
     if (params.length) url += '?' + params.join('&');
 
@@ -617,8 +545,4 @@ async function criarUsuario() {
     document.getElementById('inputNovoPass').value = '';
     await carregarUsuarios();
   } catch (err) { msg.innerHTML = '<span style="color:#e74c3c;">Erro ao criar usuário</span>'; }
-}
-
-function getUsuario() {
-  try { return JSON.parse(sessionStorage.getItem('usuario')) || {}; } catch { return {}; }
 }

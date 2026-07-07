@@ -50,7 +50,7 @@ router.get('/', autenticar, (req, res) => {
 
   const dadosPlanilha = ativos.map(a => ({
     'Série MAPA': a.serie_equipamento || '',
-    'Série UX': a.serie_ux || '',
+    'Status UX': a.serie_ux || '',
     'Status WXP': a.status_wxp || '',
     'Localidade VLI': a.localidade_vli || '',
     'Status Geral': a.status_geral || '',

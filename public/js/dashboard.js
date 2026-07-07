@@ -1,6 +1,7 @@
 let statusChart = null;
 let tipoChart = null;
 let localidadeChart = null;
+let especificacaoChart = null;
 let tendenciasChart = null;
 let dadosAtuais = null;
 let filtrosAtuais = { localidade_vli: '', status_wxp: '', status_servicenow: '', status_geral: '', tipo_equipamento: '', setor: '' };
@@ -57,7 +58,7 @@ function conectarSSE() {
 }
 
 const CAMPOS_LABELS = {
-  serie_equipamento: 'Série Equipamento', serie_ux: 'Série UX', status_wxp: 'Status WXP',
+  serie_equipamento: 'Série Equipamento', serie_ux: 'Status UX', status_wxp: 'Status WXP',
   localidade_vli: 'Localidade VLI', setor: 'Setor', status_geral: 'Status Geral',
   evidencias_instalacoes: 'Evidências Instalações', status_servicenow: 'Status ServiceNow',
   chamado_servicenow: 'Chamado ServiceNow', especificacao_servicenow: 'Especificação ServiceNow',
@@ -140,6 +141,8 @@ function atualizarCards(data) {
   animateNumber('emOperacao', data.totalPorStatus.em_operacao || 0);
   animateNumber('emEstoque', data.totalPorStatus.em_estoque || 0);
   animateNumber('emManutencao', data.totalPorStatus.em_manutencao || 0);
+  animateNumber('uxPendentes', data.uxPendentes || 0);
+  animateNumber('wxpPendentes', data.wxpPendentes || 0);
 }
 
 function animateNumber(elementId, target) {
@@ -163,6 +166,7 @@ function atualizarGraficos(data) {
   if (statusChart) { statusChart.destroy(); statusChart = null; }
   if (tipoChart) { tipoChart.destroy(); tipoChart = null; }
   if (localidadeChart) { localidadeChart.destroy(); localidadeChart = null; }
+  if (especificacaoChart) { especificacaoChart.destroy(); especificacaoChart = null; }
 
   renderChartOuVazio('chartStatus', data.statusGeral, () => {
     statusChart = criarGraficoPizza('chartStatus', data.statusGeral, 'status_geral');
@@ -174,6 +178,10 @@ function atualizarGraficos(data) {
 
   renderChartOuVazio('chartLocalidade', data.localidadeVLI, () => {
     localidadeChart = criarGraficoBarras('chartLocalidade', data.localidadeVLI, 'localidade_vli');
+  });
+
+  renderChartOuVazio('chartEspecificacao', data.especificacaoSN, () => {
+    especificacaoChart = criarGraficoBarras('chartEspecificacao', data.especificacaoSN, 'especificacao_servicenow');
   });
 }
 
@@ -510,7 +518,6 @@ async function carregarOpcoesFiltro() {
     const selectStatusSN = document.getElementById('filtroStatusSN');
     const selectStatus = document.getElementById('filtroStatus');
     const selectTipo = document.getElementById('filtroTipo');
-    const selectSetor = document.getElementById('filtroSetorDash');
     (data.statusWxp || []).forEach(s => {
       const opt = document.createElement('option');
       opt.value = s; opt.textContent = s;
@@ -527,18 +534,21 @@ async function carregarOpcoesFiltro() {
       selectStatus.appendChild(opt);
     });
     const optAdv = document.createElement('option');
-    optAdv.value = 'Advertência'; optAdv.textContent = 'Advertência';
+    optAdv.value = 'Divergências'; optAdv.textContent = 'Divergências';
     optAdv.style.color = '#e74c3c'; optAdv.style.fontWeight = '600';
     selectStatus.appendChild(optAdv);
+    const optUX = document.createElement('option');
+    optUX.value = 'UX Pendentes'; optUX.textContent = 'UX Pendentes';
+    optUX.style.color = '#e67e22'; optUX.style.fontWeight = '600';
+    selectStatus.appendChild(optUX);
+    const optWXP = document.createElement('option');
+    optWXP.value = 'WXP Pendentes'; optWXP.textContent = 'WXP Pendentes';
+    optWXP.style.color = '#e67e22'; optWXP.style.fontWeight = '600';
+    selectStatus.appendChild(optWXP);
     data.tipos.forEach(t => {
       const opt = document.createElement('option');
       opt.value = t; opt.textContent = t;
       selectTipo.appendChild(opt);
-    });
-    (data.setores || []).forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s; opt.textContent = s;
-      selectSetor.appendChild(opt);
     });
   } catch (err) {}
 }
@@ -549,13 +559,16 @@ function aplicarFiltros() {
     localidade_vli: document.getElementById('filtroLocalidade').value,
     status_wxp: document.getElementById('filtroStatusWxp').value,
     status_servicenow: document.getElementById('filtroStatusSN').value,
-    status_geral: valorStatus === 'Advertência' ? '' : valorStatus,
+    status_geral: (valorStatus === 'Divergências' || valorStatus === 'UX Pendentes' || valorStatus === 'WXP Pendentes') ? '' : valorStatus,
     tipo_equipamento: document.getElementById('filtroTipo').value,
-    setor: document.getElementById('filtroSetorDash').value
   };
   carregarDashboard();
-  if (valorStatus === 'Advertência') {
+  if (valorStatus === 'Divergências') {
     carregarAtivosAdvertencia();
+  } else if (valorStatus === 'UX Pendentes') {
+    carregarAtivosUXPendentes();
+  } else if (valorStatus === 'WXP Pendentes') {
+    carregarAtivosWXPPendentes();
   } else {
     carregarAtivosFiltrados();
   }
@@ -672,15 +685,98 @@ async function carregarAtivosAdvertencia() {
   }
 }
 
+async function carregarAtivosUXPendentes() {
+  try {
+    const res = await fetch('/api/ativos/dashboard/ux-pendentes', {
+      headers: { 'Authorization': `Bearer ${getToken()}` }
+    });
+    if (!res.ok) return;
+    const dados = await res.json();
+    const section = document.getElementById('resultadosFiltro');
+    section.style.display = 'block';
+    document.getElementById('resultadosCount').textContent = `${dados.total} ativos com UX Pendente`;
+
+    const tbody = document.getElementById('resultadosTabela');
+    if (dados.itens.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><p>Nenhum ativo com UX pendente</p></div></td></tr>`;
+      return;
+    }
+
+    const user = getUsuario();
+    const isAdmin = user && user.perfil === 'admin';
+
+    tbody.innerHTML = dados.itens.map(item =>
+      `<tr>
+        <td><strong>${item.serie_equipamento || '-'}</strong></td>
+        <td>${item.serie_ux || '-'}</td>
+        <td>${item.status_wxp || '-'}</td>
+        <td>${item.status_servicenow || '-'}</td>
+        <td><span class="status-badge status-outros">${item.status_geral || '-'}</span></td>
+        <td>${item.localidade_vli || '-'}</td>
+        <td>${item.tipo_equipamento || '-'}</td>
+        <td style="max-width:250px;"><span style="display:block;font-size:12px;color:#e67e22;"><strong>${item.motivo}</strong></span></td>
+        <td>-</td>
+        <td class="acoes-cell">
+          <button class="btn btn-info btn-sm" onclick="dashVisualizarAtivo(${item.id})">Detalhes</button>
+          ${isAdmin ? `<button class="btn btn-warning btn-sm" onclick="dashEditarAtivo(${item.id})">Editar</button>` : ''}
+        </td>
+      </tr>`
+    ).join('');
+  } catch (err) {
+    console.error('Erro ao carregar UX pendentes:', err);
+  }
+}
+
+async function carregarAtivosWXPPendentes() {
+  try {
+    const res = await fetch('/api/ativos/dashboard/wxp-pendentes', {
+      headers: { 'Authorization': `Bearer ${getToken()}` }
+    });
+    if (!res.ok) return;
+    const dados = await res.json();
+    const section = document.getElementById('resultadosFiltro');
+    section.style.display = 'block';
+    document.getElementById('resultadosCount').textContent = `${dados.total} ativos com WXP Pendente`;
+
+    const tbody = document.getElementById('resultadosTabela');
+    if (dados.itens.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><p>Nenhum ativo com WXP pendente</p></div></td></tr>`;
+      return;
+    }
+
+    const user = getUsuario();
+    const isAdmin = user && user.perfil === 'admin';
+
+    tbody.innerHTML = dados.itens.map(item =>
+      `<tr>
+        <td><strong>${item.serie_equipamento || '-'}</strong></td>
+        <td>${item.serie_ux || '-'}</td>
+        <td>${item.status_wxp || '-'}</td>
+        <td>${item.status_servicenow || '-'}</td>
+        <td><span class="status-badge status-outros">${item.status_geral || '-'}</span></td>
+        <td>${item.localidade_vli || '-'}</td>
+        <td>${item.tipo_equipamento || '-'}</td>
+        <td style="max-width:250px;"><span style="display:block;font-size:12px;color:#e67e22;"><strong>${item.motivo}</strong></span></td>
+        <td>-</td>
+        <td class="acoes-cell">
+          <button class="btn btn-info btn-sm" onclick="dashVisualizarAtivo(${item.id})">Detalhes</button>
+          ${isAdmin ? `<button class="btn btn-warning btn-sm" onclick="dashEditarAtivo(${item.id})">Editar</button>` : ''}
+        </td>
+      </tr>`
+    ).join('');
+  } catch (err) {
+    console.error('Erro ao carregar WXP pendentes:', err);
+  }
+}
+
 function limparFiltros() {
   document.getElementById('filtroLocalidade').value = '';
   document.getElementById('filtroStatusWxp').value = '';
   document.getElementById('filtroStatusSN').value = '';
   document.getElementById('filtroStatus').value = '';
   document.getElementById('filtroTipo').value = '';
-  document.getElementById('filtroSetorDash').value = '';
 
-  filtrosAtuais = { localidade_vli: '', status_wxp: '', status_servicenow: '', status_geral: '', tipo_equipamento: '', setor: '' };
+  filtrosAtuais = { localidade_vli: '', status_wxp: '', status_servicenow: '', status_geral: '', tipo_equipamento: '' };
   document.getElementById('resultadosFiltro').style.display = 'none';
   carregarDashboard();
 }
@@ -700,7 +796,7 @@ async function dashVisualizarAtivo(id) {
 
     const campos = [
       { label: 'Série Equipamento', val: ativo.serie_equipamento },
-      { label: 'Série UX', val: ativo.serie_ux },
+      { label: 'Status UX', val: ativo.serie_ux },
       { label: 'Status WXP', val: ativo.status_wxp },
       { label: 'Localidade VLI', val: ativo.localidade_vli },
       { label: 'Setor', val: ativo.setor },

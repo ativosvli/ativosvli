@@ -199,7 +199,15 @@ router.get('/dashboard/totais', (req, res) => {
     FROM ativos ${whereClause}
   `).get(...params);
 
-  res.json({ totalGeral: totalGeral.total, totalPorStatus, statusGeral, tipoEquipamento, localidadeVLI, modelos });
+  const uxPendentes = db.prepare(`SELECT COUNT(*) as total FROM ativos ${whereClause ? whereClause + ' AND' : 'WHERE'} (serie_ux IS NULL OR serie_ux = '' OR serie_ux = 'Pendente')`).get(...params);
+  const wxpPendentes = db.prepare(`SELECT COUNT(*) as total FROM ativos ${whereClause ? whereClause + ' AND' : 'WHERE'} (status_wxp IS NULL OR status_wxp = '' OR status_wxp = 'Pendente')`).get(...params);
+
+  const especificacaoSN = db.prepare(`
+    SELECT especificacao_servicenow, COUNT(*) as total FROM ativos ${whereClause}
+    GROUP BY especificacao_servicenow ORDER BY total DESC
+  `).all(...params);
+
+  res.json({ totalGeral: totalGeral.total, totalPorStatus, statusGeral, tipoEquipamento, localidadeVLI, modelos, uxPendentes: uxPendentes.total, wxpPendentes: wxpPendentes.total, especificacaoSN });
 });
 
 router.get('/dashboard/tendencias', (req, res) => {
@@ -266,6 +274,32 @@ router.get('/dashboard/advertencias', (req, res) => {
   }
 
   res.json({ total: inconsistencias.length, itens: inconsistencias });
+});
+
+router.get('/dashboard/ux-pendentes', (req, res) => {
+  const db = getDatabase();
+  const ativos = db.prepare(`
+    SELECT id, serie_equipamento, serie_ux, status_wxp, status_servicenow, status_geral, localidade_vli, tipo_equipamento, modelo
+    FROM ativos WHERE serie_ux IS NULL OR serie_ux = '' OR serie_ux = 'Pendente' ORDER BY id
+  `).all();
+  const itens = ativos.map(a => ({
+    ...a,
+    motivo: `Status UX: "${a.serie_ux || 'vazio'}" → Pendente`
+  }));
+  res.json({ total: itens.length, itens });
+});
+
+router.get('/dashboard/wxp-pendentes', (req, res) => {
+  const db = getDatabase();
+  const ativos = db.prepare(`
+    SELECT id, serie_equipamento, serie_ux, status_wxp, status_servicenow, status_geral, localidade_vli, tipo_equipamento, modelo
+    FROM ativos WHERE status_wxp IS NULL OR status_wxp = '' OR status_wxp = 'Pendente' ORDER BY id
+  `).all();
+  const itens = ativos.map(a => ({
+    ...a,
+    motivo: `Status WXP: "${a.status_wxp || 'vazio'}" → Pendente`
+  }));
+  res.json({ total: itens.length, itens });
 });
 
 router.get('/dashboard/atividades-recentes', (req, res) => {

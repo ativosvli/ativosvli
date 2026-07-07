@@ -87,40 +87,12 @@
 
       <div class="filtros-bar">
         <div class="filtro-group">
-          <label>Buscar</label>
-          <input type="text" id="searchInput" placeholder="Série, modelo, NF..." onkeyup="debounceBusca()">
-        </div>
-        <div class="filtro-group">
           <label>Status Geral</label>
           <select id="filtroStatus"><option value="">Todos</option></select>
         </div>
         <div class="filtro-group">
-          <label>Localidade VLI</label>
-          <input type="text" id="filtroLocalidade" placeholder="Digite ou selecione..." onkeyup="debounceBusca()" autocomplete="off">
-        </div>
-        <div class="filtro-group">
-          <label>Status WXP</label>
-          <select id="filtroStatusWxp"><option value="">Todos</option></select>
-        </div>
-        <div class="filtro-group">
-          <label>Status ServiceNow</label>
-          <select id="filtroStatusSN"><option value="">Todos</option></select>
-        </div>
-        <div class="filtro-group">
-          <label>Setor</label>
-          <select id="filtroSetor"><option value="">Todos</option></select>
-        </div>
-        <div class="filtro-group">
           <label>Tipo Equipamento</label>
           <select id="filtroTipo"><option value="">Todos</option></select>
-        </div>
-        <div class="filtro-group">
-          <label>Data Início</label>
-          <input type="date" id="filtroDataInicio" onchange="carregarAtivos()">
-        </div>
-        <div class="filtro-group">
-          <label>Data Fim</label>
-          <input type="date" id="filtroDataFim" onchange="carregarAtivos()">
         </div>
         <button class="btn btn-primary btn-sm" onclick="paginaAtual=1;carregarAtivos()">Filtrar</button>
         <button class="btn btn-outline btn-sm" onclick="limparFiltrosAtivos()">Limpar</button>
@@ -132,11 +104,11 @@
             <thead>
               <tr>
                 <th>Série Equip.</th>
-                <th>Série UX</th>
+                <th>Status UX</th>
                 <th>Status WXP</th>
                 <th>Status ServiceNow</th>
-                <th>Especificação</th>
                 <th>Status Geral</th>
+                <th>Especificação</th>
                 <th>Localidade</th>
                 <th>Tipo</th>
                 <th>Modelo</th>
@@ -164,10 +136,14 @@
       </h3>
       <div class="form-row">
         <div class="form-group"><label>Série Equipamento</label><input type="text" id="serie_equipamento"></div>
-        <div class="form-group"><label>Série UX</label><input type="text" id="serie_ux"></div>
+        <div class="form-group"><label>Status UX</label>
+          <select id="serie_ux"><option value="">Selecione...</option><option>Cadastrado</option><option>Pendente</option></select>
+        </div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Status WXP</label><input type="text" id="status_wxp"></div>
+        <div class="form-group"><label>Status WXP</label>
+          <select id="status_wxp"><option value="">Selecione...</option><option>Cadastrado</option><option>Pendente</option></select>
+        </div>
         <div class="form-group"><label>Localidade VLI</label><input type="text" id="localidade_vli"></div>
       </div>
       <div class="form-row">
@@ -310,7 +286,7 @@
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
         <div class="detail-group"><label>Série Equipamento</label><span id="det_serie_equipamento">-</span></div>
-        <div class="detail-group"><label>Série UX</label><span id="det_serie_ux">-</span></div>
+        <div class="detail-group"><label>Status UX</label><span id="det_serie_ux">-</span></div>
         <div class="detail-group"><label>Status WXP</label><span id="det_status_wxp">-</span></div>
         <div class="detail-group"><label>Localidade VLI</label><span id="det_localidade_vli">-</span></div>
         <div class="detail-group"><label>Setor</label><span id="det_setor">-</span></div>
