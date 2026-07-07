@@ -143,6 +143,19 @@ function atualizarCards(data) {
   animateNumber('emManutencao', data.totalPorStatus.em_manutencao || 0);
   animateNumber('uxPendentes', data.uxPendentes || 0);
   animateNumber('wxpPendentes', data.wxpPendentes || 0);
+
+  const uxVal = data.uxPendentes || 0;
+  const wxpVal = data.wxpPendentes || 0;
+  const corUX = uxVal > 0 ? '#e67e22' : '#2ecc71';
+  const corWXP = wxpVal > 0 ? '#e67e22' : '#2ecc71';
+  const uxNum = document.getElementById('uxPendentes');
+  const wxpNum = document.getElementById('wxpPendentes');
+  const uxCard = document.getElementById('cardUxPendentes');
+  const wxpCard = document.getElementById('cardWxpPendentes');
+  if (uxNum) uxNum.style.color = corUX;
+  if (uxCard) uxCard.style.borderLeftColor = corUX;
+  if (wxpNum) wxpNum.style.color = corWXP;
+  if (wxpCard) wxpCard.style.borderLeftColor = corWXP;
 }
 
 function animateNumber(elementId, target) {
