@@ -52,10 +52,12 @@ async function carregarAtivos() {
   try {
     const status = document.getElementById('filtroStatus').value;
     const tipo = document.getElementById('filtroTipo').value;
+    const busca = document.getElementById('filtroBusca').value.trim();
 
     let url = `/api/ativos?page=${paginaAtual}&limit=100`;
     if (status) url += `&status_geral=${encodeURIComponent(status)}`;
     if (tipo) url += `&tipo_equipamento=${encodeURIComponent(tipo)}`;
+    if (busca) url += `&search=${encodeURIComponent(busca)}`;
 
     const res = await fetch(url, {
       headers: { 'Authorization': `Bearer ${getToken()}` }
@@ -117,6 +119,7 @@ function renderTabela(ativos) {
 function limparFiltrosAtivos() {
   document.getElementById('filtroStatus').value = '';
   document.getElementById('filtroTipo').value = '';
+  document.getElementById('filtroBusca').value = '';
   paginaAtual = 1;
   carregarAtivos();
 }

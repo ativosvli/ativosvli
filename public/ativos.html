@@ -94,6 +94,10 @@
           <label>Tipo Equipamento</label>
           <select id="filtroTipo"><option value="">Todos</option></select>
         </div>
+        <div class="filtro-group" style="flex:1;">
+          <label>Buscar</label>
+          <input type="text" id="filtroBusca" placeholder="Série, NF ou modelo..." onkeydown="if(event.key==='Enter'){paginaAtual=1;carregarAtivos()}">
+        </div>
         <button class="btn btn-primary btn-sm" onclick="paginaAtual=1;carregarAtivos()">Filtrar</button>
         <button class="btn btn-outline btn-sm" onclick="limparFiltrosAtivos()">Limpar</button>
       </div>
