@@ -11,7 +11,7 @@ router.get('/', autenticar, (req, res) => {
   const dataStr = new Date().toLocaleDateString('pt-BR');
   const horaStr = new Date().toLocaleTimeString('pt-BR');
 
-  let query = 'SELECT * FROM ativos';
+  let query = 'SELECT serie_equipamento, serie_ux, status_wxp, localidade_vli, status_geral, evidencias_instalacoes, status_servicenow, chamado_servicenow, especificacao_servicenow, tipo_equipamento, modelo, nf, comentario FROM ativos';
   let params = [];
   let where = [];
 
