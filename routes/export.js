@@ -26,22 +26,19 @@ router.get('/', async (req, res) => {
   let where = [];
   let params = [];
 
-  if (req.query.status_geral) {
-    where.push('status_geral = ?');
-    params.push(req.query.status_geral);
+  function addInFilter(key, col) {
+    const v = req.query[key];
+    if (v) {
+      const vals = Array.isArray(v) ? v : [v];
+      where.push(`${col} IN (${vals.map(() => '?').join(',')})`);
+      params.push(...vals);
+    }
   }
-  if (req.query.localidade_vli) {
-    where.push('localidade_vli = ?');
-    params.push(req.query.localidade_vli);
-  }
-  if (req.query.setor) {
-    where.push('setor = ?');
-    params.push(req.query.setor);
-  }
-  if (req.query.tipo_equipamento) {
-    where.push('tipo_equipamento = ?');
-    params.push(req.query.tipo_equipamento);
-  }
+
+  addInFilter('status_geral', 'status_geral');
+  addInFilter('localidade_vli', 'localidade_vli');
+  addInFilter('setor', 'setor');
+  addInFilter('tipo_equipamento', 'tipo_equipamento');
 
   const whereClause = where.length > 0 ? ' WHERE ' + where.join(' AND ') : '';
   const totalCount = db.prepare(`SELECT COUNT(*) as total FROM ativos${whereClause}`).get(...params).total;

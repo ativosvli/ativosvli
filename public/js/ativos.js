@@ -14,23 +14,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function carregarFiltrosDrop() {
-  const selectStatus = document.getElementById('filtroStatus');
-  STATUS_GERAIS.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s; opt.textContent = s;
-    selectStatus.appendChild(opt);
-  });
+  populateMS('msStatus', STATUS_GERAIS);
 
   fetch('/api/ativos/filtros/opcoes', {
     headers: { 'Authorization': `Bearer ${getToken()}` }
   })
   .then(r => r.json())
   .then(data => {
-    const selTipo = document.getElementById('filtroTipo');
-    (data.tipos || []).forEach(v => {
-      const o = document.createElement('option'); o.value = v; o.textContent = v;
-      selTipo.appendChild(o);
-    });
+    populateMS('msTipo', data.tipos || []);
+    populateMS('msLocalidade', data.localidades || []);
 
     const localidades = data.localidades || [];
     ['localidade_vli', 'dEdit_localidade_vli'].forEach(id => {
@@ -48,16 +40,23 @@ function carregarFiltrosDrop() {
   .catch(() => {});
 }
 
-async function carregarAtivos() {
-  try {
-    const status = document.getElementById('filtroStatus').value;
-    const tipo = document.getElementById('filtroTipo').value;
-    const busca = document.getElementById('filtroBusca').value.trim();
+  function buildMSQuery(url, id, paramName) {
+    const vals = getMSValues(id);
+    if (vals.length) {
+      url += (url.includes('?') ? '&' : '?') + vals.map(v => `${paramName}=${encodeURIComponent(v)}`).join('&');
+    }
+    return url;
+  }
 
-    let url = `/api/ativos?page=${paginaAtual}&limit=100`;
-    if (status) url += `&status_geral=${encodeURIComponent(status)}`;
-    if (tipo) url += `&tipo_equipamento=${encodeURIComponent(tipo)}`;
-    if (busca) url += `&search=${encodeURIComponent(busca)}`;
+  async function carregarAtivos() {
+    try {
+      const busca = document.getElementById('filtroBusca').value.trim();
+
+      let url = `/api/ativos?page=${paginaAtual}&limit=100`;
+      url = buildMSQuery(url, 'msLocalidade', 'localidade_vli');
+      url = buildMSQuery(url, 'msStatus', 'status_geral');
+      url = buildMSQuery(url, 'msTipo', 'tipo_equipamento');
+      if (busca) url += `&search=${encodeURIComponent(busca)}`;
 
     const res = await fetch(url, {
       headers: { 'Authorization': `Bearer ${getToken()}` }
@@ -117,8 +116,9 @@ function renderTabela(ativos) {
 }
 
 function limparFiltrosAtivos() {
-  document.getElementById('filtroStatus').value = '';
-  document.getElementById('filtroTipo').value = '';
+  clearMS('msLocalidade');
+  clearMS('msStatus');
+  clearMS('msTipo');
   document.getElementById('filtroBusca').value = '';
   paginaAtual = 1;
   carregarAtivos();
@@ -430,7 +430,7 @@ function mostrarSugestoes(input) {
   container.innerHTML = filtradas.map(o =>
     `<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);transition:background 0.1s;"
       onmouseover="this.style.background='var(--accent-light)'" onmouseout="this.style.background=''"
-      onmousedown="event.stopPropagation(); document.getElementById('${input.id}').value='${o.replace(/'/g, "\\'")}'; document.getElementById('sugestoesLocalidade').style.display='none'">${o}</div>`
+      onmousedown="event.stopPropagation(); selecionarLocalidade('${o.replace(/'/g, "\\'")}')">${o}</div>`
   ).join('');
 }
 
@@ -440,7 +440,6 @@ function selecionarLocalidade(valor) {
   if (!input) return;
   input.value = valor;
   container.style.display = 'none';
-  if (input.id === 'filtroLocalidade') carregarAtivos();
 }
 
 async function importarExcel() {
@@ -473,14 +472,15 @@ async function importarExcel() {
 
 async function exportarExcel() {
   try {
-    const status = document.getElementById('filtroStatus').value;
-    const tipo = document.getElementById('filtroTipo').value;
-
     let url = '/api/exportar';
-    const params = [];
-    if (status) params.push(`status_geral=${encodeURIComponent(status)}`);
-    if (tipo) params.push(`tipo_equipamento=${encodeURIComponent(tipo)}`);
-    if (params.length) url += '?' + params.join('&');
+    const q = [];
+    const locVals = getMSValues('msLocalidade');
+    const stVals = getMSValues('msStatus');
+    const tpVals = getMSValues('msTipo');
+    locVals.forEach(v => q.push(`localidade_vli=${encodeURIComponent(v)}`));
+    stVals.forEach(v => q.push(`status_geral=${encodeURIComponent(v)}`));
+    tpVals.forEach(v => q.push(`tipo_equipamento=${encodeURIComponent(v)}`));
+    if (q.length) url += '?' + q.join('&');
 
     const res = await fetch(url, { headers: { 'Authorization': `Bearer ${getToken()}` } });
     if (!res.ok) { mostrarToast('Erro ao exportar', 'error'); return; }

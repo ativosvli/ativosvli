@@ -34,20 +34,40 @@ function createTursoClient(url, authToken) {
     return obj;
   }
 
-  function execRequest(sql, params) {
-    const body = JSON.stringify({
-      requests: [{ type: "execute", stmt: { sql, args: params.map(p => toTursoValue(p ?? null)) } }]
-    });
+  function sendPipeline(requests) {
+    const body = JSON.stringify({ requests });
     const b64Body = Buffer.from(body).toString('base64');
     const code = `p=JSON.parse(Buffer.from(process.argv[1],'base64').toString());require('https').request({hostname:'${dbName}.turso.io',path:'/v2/pipeline',method:'POST',headers:{'Authorization':'Bearer ${authToken}','Content-Type':'application/json'}},r=>{let d='';r.on('data',c=>d+=c);r.on('end',()=>process.stdout.write(d))}).on('error',e=>{process.stderr.write(e.message);process.exit(1)}).end(JSON.stringify(p))`;
-    const stdout = execFileSync(process.execPath, ['-e', code, b64Body], { timeout: 20000, stdio: 'pipe' });
-    const json = JSON.parse(stdout.toString('utf-8'));
-    const result = json.results?.[0]?.response?.result;
+    const stdout = execFileSync(process.execPath, ['-e', code, b64Body], { timeout: 120000, stdio: 'pipe' });
+    return JSON.parse(stdout.toString('utf-8'));
+  }
+
+  function execRequest(sql, params) {
+    const results = sendPipeline([{ type: "execute", stmt: { sql, args: params.map(p => toTursoValue(p ?? null)) } }]);
+    const result = results.results?.[0]?.response?.result;
     if (!result) {
-      const errMsg = json.results?.[0]?.error?.message || 'Erro Turso';
+      const errMsg = results.results?.[0]?.error?.message || 'Erro Turso';
       throw new Error(errMsg);
     }
     return parseTursoResult(result);
+  }
+
+  function execBatch(statements) {
+    const requests = statements.map(s => ({
+      type: "execute",
+      stmt: { sql: s.sql, args: (s.params || []).map(p => toTursoValue(p ?? null)) }
+    }));
+    const results = sendPipeline(requests);
+    const out = [];
+    for (let i = 0; i < requests.length; i++) {
+      const res = results.results?.[i]?.response?.result;
+      if (res) {
+        out.push({ ok: true, changes: Number(res.affected_row_count || 0) });
+      } else {
+        out.push({ ok: false, error: results.results?.[i]?.error?.message || 'Erro' });
+      }
+    }
+    return out;
   }
 
   return {
@@ -81,6 +101,7 @@ function createTursoClient(url, authToken) {
       };
     },
     exec(sql) { execRequest(sql, []); },
+    batch(statements) { return execBatch(statements); },
     pragma() {},
     close() {}
   };

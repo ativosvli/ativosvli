@@ -40,12 +40,21 @@ router.get('/', (req, res) => {
   let where = [];
   let params = [];
 
-  if (req.query.status_geral) { where.push('status_geral = ?'); params.push(req.query.status_geral); }
-  if (req.query.status_wxp) { where.push('status_wxp = ?'); params.push(req.query.status_wxp); }
-  if (req.query.status_servicenow) { where.push('status_servicenow = ?'); params.push(req.query.status_servicenow); }
-  if (req.query.localidade_vli) { where.push('localidade_vli = ?'); params.push(req.query.localidade_vli); }
-  if (req.query.setor) { where.push('setor = ?'); params.push(req.query.setor); }
-  if (req.query.tipo_equipamento) { where.push('tipo_equipamento = ?'); params.push(req.query.tipo_equipamento); }
+  function addInFilter(key, col) {
+    const v = req.query[key];
+    if (v) {
+      const vals = Array.isArray(v) ? v : [v];
+      where.push(`${col} IN (${vals.map(() => '?').join(',')})`);
+      params.push(...vals);
+    }
+  }
+
+  addInFilter('status_geral', 'status_geral');
+  addInFilter('status_wxp', 'status_wxp');
+  addInFilter('status_servicenow', 'status_servicenow');
+  addInFilter('localidade_vli', 'localidade_vli');
+  addInFilter('setor', 'setor');
+  addInFilter('tipo_equipamento', 'tipo_equipamento');
   if (req.query.search) {
     where.push('(serie_equipamento LIKE ? OR serie_ux LIKE ? OR modelo LIKE ? OR nf LIKE ?)');
     const s = `%${req.query.search}%`; params.push(s, s, s, s);
@@ -149,17 +158,25 @@ router.delete('/:id', autenticar, adminApenas, (req, res) => {
 
 router.get('/dashboard/totais', (req, res) => {
   const db = getDatabase();
-  const { localidade_vli, status_wxp, status_servicenow, status_geral, tipo_equipamento, setor } = req.query;
 
   let where = [];
   let params = [];
 
-  if (localidade_vli) { where.push('localidade_vli = ?'); params.push(localidade_vli); }
-  if (status_wxp) { where.push('status_wxp = ?'); params.push(status_wxp); }
-  if (status_servicenow) { where.push('status_servicenow = ?'); params.push(status_servicenow); }
-  if (status_geral) { where.push('status_geral = ?'); params.push(status_geral); }
-  if (tipo_equipamento) { where.push('tipo_equipamento = ?'); params.push(tipo_equipamento); }
-  if (setor) { where.push('setor = ?'); params.push(setor); }
+  function addInFilter(key, col) {
+    const v = req.query[key];
+    if (v) {
+      const vals = Array.isArray(v) ? v : [v];
+      where.push(`${col} IN (${vals.map(() => '?').join(',')})`);
+      params.push(...vals);
+    }
+  }
+
+  addInFilter('localidade_vli', 'localidade_vli');
+  addInFilter('status_wxp', 'status_wxp');
+  addInFilter('status_servicenow', 'status_servicenow');
+  addInFilter('status_geral', 'status_geral');
+  addInFilter('tipo_equipamento', 'tipo_equipamento');
+  addInFilter('setor', 'setor');
 
   const whereClause = where.length > 0 ? 'WHERE ' + where.join(' AND ') : '';
   const paramsForCount = [...params];

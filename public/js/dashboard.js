@@ -4,8 +4,6 @@ let localidadeChart = null;
 let especificacaoChart = null;
 let tendenciasChart = null;
 let dadosAtuais = null;
-let filtrosAtuais = { localidade_vli: '', status_wxp: '', status_servicenow: '', status_geral: '', tipo_equipamento: '', setor: '' };
-
 const PALETA = ['#1a237e', '#3f51b5', '#00bcd4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#f97316', '#14b8a6', '#6366f1', '#06b6d4'];
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -26,13 +24,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function getFiltrosQuery() {
   const params = [];
-  if (filtrosAtuais.localidade_vli) params.push(`localidade_vli=${encodeURIComponent(filtrosAtuais.localidade_vli)}`);
-  if (filtrosAtuais.status_wxp) params.push(`status_wxp=${encodeURIComponent(filtrosAtuais.status_wxp)}`);
-  if (filtrosAtuais.status_servicenow) params.push(`status_servicenow=${encodeURIComponent(filtrosAtuais.status_servicenow)}`);
-  if (filtrosAtuais.status_geral) params.push(`status_geral=${encodeURIComponent(filtrosAtuais.status_geral)}`);
-  if (filtrosAtuais.tipo_equipamento) params.push(`tipo_equipamento=${encodeURIComponent(filtrosAtuais.tipo_equipamento)}`);
-  if (filtrosAtuais.setor) params.push(`setor=${encodeURIComponent(filtrosAtuais.setor)}`);
+  getMSValues('msLocalidade').forEach(v => params.push(`localidade_vli=${encodeURIComponent(v)}`));
+  getMSValues('msWxp').forEach(v => params.push(`status_wxp=${encodeURIComponent(v)}`));
+  getMSValues('msServiceNow').forEach(v => params.push(`status_servicenow=${encodeURIComponent(v)}`));
+  const stVals = getMSValues('msStatus');
+  stVals.filter(v => v !== 'Divergências' && v !== 'UX Pendentes' && v !== 'WXP Pendentes').forEach(v => params.push(`status_geral=${encodeURIComponent(v)}`));
+  getMSValues('msTipo').forEach(v => params.push(`tipo_equipamento=${encodeURIComponent(v)}`));
   return params.length ? '?' + params.join('&') : '';
+}
+
+function getSpecialStatus() {
+  const stVals = getMSValues('msStatus');
+  if (stVals.includes('Divergências')) return 'Divergências';
+  if (stVals.includes('UX Pendentes')) return 'UX Pendentes';
+  if (stVals.includes('WXP Pendentes')) return 'WXP Pendentes';
+  return null;
+}
+
+function hasAnyFilter() {
+  return getMSValues('msLocalidade').length || getMSValues('msWxp').length ||
+    getMSValues('msServiceNow').length ||
+    getMSValues('msStatus').filter(v => v !== 'Divergências' && v !== 'UX Pendentes' && v !== 'WXP Pendentes').length ||
+    getMSValues('msTipo').length;
 }
 
 function conectarSSE() {
@@ -124,8 +137,7 @@ async function carregarDashboard() {
     atualizarGraficos(dadosAtuais);
 
     const totalGeral = dadosAtuais.totalGeral;
-    const temFiltro = filtrosAtuais.localidade_vli || filtrosAtuais.status_wxp || filtrosAtuais.status_servicenow || filtrosAtuais.status_geral || filtrosAtuais.tipo_equipamento;
-    document.getElementById('totalAtivosBadge').textContent = temFiltro
+    document.getElementById('totalAtivosBadge').textContent = hasAnyFilter()
       ? `${totalGeral} ativos (filtrado)`
       : `${totalGeral} ativos`;
 
@@ -505,18 +517,7 @@ async function carregarOpcoesFiltro() {
     });
     const data = await res.json();
 
-    const inpLocal = document.getElementById('filtroLocalidade');
     const localidades = data.localidades || [];
-    inpLocal._opcoes = localidades;
-    inpLocal.addEventListener('focus', function() { mostrarSugestoes(this); });
-    inpLocal.addEventListener('input', function() { mostrarSugestoes(this); });
-    inpLocal.addEventListener('blur', function() {
-      setTimeout(() => { const s = document.getElementById('sugestoesLocalidade'); if (s) s.remove(); }, 200);
-    });
-    inpLocal.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') aplicarFiltros();
-    });
-
     const formLocal = document.getElementById('dEdit_localidade_vli');
     if (formLocal) {
       formLocal._opcoes = localidades;
@@ -527,60 +528,23 @@ async function carregarOpcoesFiltro() {
       });
     }
 
-    const selectStatusWxp = document.getElementById('filtroStatusWxp');
-    const selectStatusSN = document.getElementById('filtroStatusSN');
-    const selectStatus = document.getElementById('filtroStatus');
-    const selectTipo = document.getElementById('filtroTipo');
-    (data.statusWxp || []).forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s; opt.textContent = s;
-      selectStatusWxp.appendChild(opt);
-    });
-    (data.statusServiceNow || []).forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s; opt.textContent = s;
-      selectStatusSN.appendChild(opt);
-    });
-    data.statusGerais.forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s; opt.textContent = s;
-      selectStatus.appendChild(opt);
-    });
-    const optAdv = document.createElement('option');
-    optAdv.value = 'Divergências'; optAdv.textContent = 'Divergências';
-    optAdv.style.color = '#e74c3c'; optAdv.style.fontWeight = '600';
-    selectStatus.appendChild(optAdv);
-    const optUX = document.createElement('option');
-    optUX.value = 'UX Pendentes'; optUX.textContent = 'UX Pendentes';
-    optUX.style.color = '#e67e22'; optUX.style.fontWeight = '600';
-    selectStatus.appendChild(optUX);
-    const optWXP = document.createElement('option');
-    optWXP.value = 'WXP Pendentes'; optWXP.textContent = 'WXP Pendentes';
-    optWXP.style.color = '#e67e22'; optWXP.style.fontWeight = '600';
-    selectStatus.appendChild(optWXP);
-    data.tipos.forEach(t => {
-      const opt = document.createElement('option');
-      opt.value = t; opt.textContent = t;
-      selectTipo.appendChild(opt);
-    });
+    populateMS('msWxp', data.statusWxp || []);
+    populateMS('msServiceNow', data.statusServiceNow || []);
+    const statusOptions = [...(data.statusGerais || []), '---', 'Divergências', 'UX Pendentes', 'WXP Pendentes'];
+    populateMS('msStatus', statusOptions);
+    populateMS('msTipo', data.tipos || []);
+    populateMS('msLocalidade', localidades);
   } catch (err) {}
 }
 
 function aplicarFiltros() {
-  const valorStatus = document.getElementById('filtroStatus').value;
-  filtrosAtuais = {
-    localidade_vli: document.getElementById('filtroLocalidade').value,
-    status_wxp: document.getElementById('filtroStatusWxp').value,
-    status_servicenow: document.getElementById('filtroStatusSN').value,
-    status_geral: (valorStatus === 'Divergências' || valorStatus === 'UX Pendentes' || valorStatus === 'WXP Pendentes') ? '' : valorStatus,
-    tipo_equipamento: document.getElementById('filtroTipo').value,
-  };
+  const special = getSpecialStatus();
   carregarDashboard();
-  if (valorStatus === 'Divergências') {
+  if (special === 'Divergências') {
     carregarAtivosAdvertencia();
-  } else if (valorStatus === 'UX Pendentes') {
+  } else if (special === 'UX Pendentes') {
     carregarAtivosUXPendentes();
-  } else if (valorStatus === 'WXP Pendentes') {
+  } else if (special === 'WXP Pendentes') {
     carregarAtivosWXPPendentes();
   } else {
     carregarAtivosFiltrados();
@@ -588,21 +552,16 @@ function aplicarFiltros() {
 }
 
 async function carregarAtivosFiltrados() {
-  const temFiltro = filtrosAtuais.localidade_vli || filtrosAtuais.status_wxp || filtrosAtuais.status_servicenow || filtrosAtuais.status_geral || filtrosAtuais.tipo_equipamento;
   const section = document.getElementById('resultadosFiltro');
 
-  if (!temFiltro) {
+  if (!hasAnyFilter()) {
     section.style.display = 'none';
     return;
   }
 
   try {
     let url = '/api/ativos?limit=50';
-    if (filtrosAtuais.localidade_vli) url += `&localidade_vli=${encodeURIComponent(filtrosAtuais.localidade_vli)}`;
-    if (filtrosAtuais.status_wxp) url += `&status_wxp=${encodeURIComponent(filtrosAtuais.status_wxp)}`;
-    if (filtrosAtuais.status_servicenow) url += `&status_servicenow=${encodeURIComponent(filtrosAtuais.status_servicenow)}`;
-    if (filtrosAtuais.status_geral) url += `&status_geral=${encodeURIComponent(filtrosAtuais.status_geral)}`;
-    if (filtrosAtuais.tipo_equipamento) url += `&tipo_equipamento=${encodeURIComponent(filtrosAtuais.tipo_equipamento)}`;
+    url += '&' + getFiltrosQuery().replace(/^\?/, '');
 
     const res = await fetch(url, {
       headers: { 'Authorization': `Bearer ${getToken()}` }
@@ -783,13 +742,11 @@ async function carregarAtivosWXPPendentes() {
 }
 
 function limparFiltros() {
-  document.getElementById('filtroLocalidade').value = '';
-  document.getElementById('filtroStatusWxp').value = '';
-  document.getElementById('filtroStatusSN').value = '';
-  document.getElementById('filtroStatus').value = '';
-  document.getElementById('filtroTipo').value = '';
-
-  filtrosAtuais = { localidade_vli: '', status_wxp: '', status_servicenow: '', status_geral: '', tipo_equipamento: '' };
+  clearMS('msLocalidade');
+  clearMS('msWxp');
+  clearMS('msServiceNow');
+  clearMS('msStatus');
+  clearMS('msTipo');
   document.getElementById('resultadosFiltro').style.display = 'none';
   carregarDashboard();
 }
@@ -1039,18 +996,11 @@ function mostrarSugestoes(input) {
 
 function selecionarLocalidade(valor) {
   const container = document.getElementById('sugestoesLocalidade');
-  const inputId = container ? container._inputId : 'filtroLocalidade';
+  const inputId = container ? container._inputId : 'dEdit_localidade_vli';
   const input = document.getElementById(inputId);
   if (!input) return;
   input.value = valor;
   if (container) container.style.display = 'none';
-  if (typeof filtrosAtuais !== 'undefined') {
-    filtrosAtuais.localidade_vli = valor;
-    carregarDashboard();
-    if (typeof carregarAtivosFiltrados === 'function') carregarAtivosFiltrados();
-  } else {
-    carregarDashboard();
-  }
 }
 
 async function executarExclusaoDash(id, justificativa) {

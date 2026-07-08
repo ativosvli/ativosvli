@@ -87,12 +87,31 @@
 
       <div class="filtros-bar">
         <div class="filtro-group">
-          <label>Status Geral</label>
-          <select id="filtroStatus"><option value="">Todos</option></select>
+          <div class="multi-select" id="msLocalidade">
+            <button type="button" class="ms-btn" onclick="toggleMS('msLocalidade')">
+              <span class="ms-label">Localidade VLI</span>
+              <span class="ms-count">Todos</span>
+              <span class="ms-arrow">▼</span>
+            </button>
+          </div>
         </div>
         <div class="filtro-group">
-          <label>Tipo Equipamento</label>
-          <select id="filtroTipo"><option value="">Todos</option></select>
+          <div class="multi-select" id="msStatus">
+            <button type="button" class="ms-btn" onclick="toggleMS('msStatus')">
+              <span class="ms-label">Status Geral</span>
+              <span class="ms-count">Todos</span>
+              <span class="ms-arrow">▼</span>
+            </button>
+          </div>
+        </div>
+        <div class="filtro-group">
+          <div class="multi-select" id="msTipo">
+            <button type="button" class="ms-btn" onclick="toggleMS('msTipo')">
+              <span class="ms-label">Tipo Equip.</span>
+              <span class="ms-count">Todos</span>
+              <span class="ms-arrow">▼</span>
+            </button>
+          </div>
         </div>
         <div class="filtro-group" style="flex:1;">
           <label>Buscar</label>

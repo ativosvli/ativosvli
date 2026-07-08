@@ -309,3 +309,110 @@ function atualizarLabelTema(tema) {
   const label = document.getElementById('themeLabel');
   if (label) label.textContent = tema === 'dark' ? 'Tema Claro' : 'Tema Escuro';
 }
+
+/* ===== MULTI-SELECT ===== */
+function toggleMS(id) {
+  const container = document.getElementById(id);
+  if (!container) return;
+  const btn = container.querySelector('.ms-btn');
+  const dd = container.querySelector('.ms-dropdown');
+  const isOpen = dd.classList.contains('open');
+  document.querySelectorAll('.ms-dropdown.open').forEach(d => {
+    d.classList.remove('open');
+    d.closest('.multi-select')?.querySelector('.ms-btn')?.classList.remove('open');
+  });
+  if (!isOpen) {
+    const rect = btn.getBoundingClientRect();
+    dd.style.left = rect.left + 'px';
+    dd.style.top = (rect.bottom + 4) + 'px';
+    dd.style.width = Math.max(rect.width, 200) + 'px';
+    dd.classList.add('open');
+    btn.classList.add('open');
+  }
+}
+
+function populateMS(id, options) {
+  const container = document.getElementById(id);
+  if (!container) return;
+  container._msOptions = options;
+  container._msSelected = container._msSelected || [];
+}
+
+function getSelectedSet(id) {
+  const container = document.getElementById(id);
+  return new Set(container?._msSelected || []);
+}
+
+function getMSValues(id) {
+  const container = document.getElementById(id);
+  return container?._msSelected || [];
+}
+
+function updateMSLabel(id) {
+  const vals = getMSValues(id);
+  const count = document.querySelector(`#${id} .ms-count`);
+  if (count) count.textContent = vals.length ? `${vals.length} selecionado(s)` : 'Todos';
+}
+
+function clearMS(id) {
+  const container = document.getElementById(id);
+  if (container) container._msSelected = [];
+  updateMSLabel(id);
+}
+
+function setMSValues(id, values) {
+  const container = document.getElementById(id);
+  if (container) container._msSelected = values;
+  updateMSLabel(id);
+}
+
+function toggleMS(id) {
+  const container = document.getElementById(id);
+  if (!container) return;
+  const btn = container.querySelector('.ms-btn');
+
+  const existing = document.getElementById('msBodyDropdown');
+  if (existing) {
+    existing.remove();
+    btn.classList.remove('open');
+    return;
+  }
+
+  const options = container._msOptions || [];
+  const selected = getSelectedSet(id);
+  const rect = btn.getBoundingClientRect();
+
+  const dd = document.createElement('div');
+  dd.id = 'msBodyDropdown';
+  dd.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.bottom + 4}px;width:${Math.max(rect.width, 200)}px;z-index:99999;background:var(--bg-card);border:1.5px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-md);max-height:260px;overflow-y:auto;padding:4px 0;`;
+
+  dd.innerHTML = options.map(o => {
+    if (o === '---') return `<div style="border-top:1px solid var(--border);margin:4px 0;"></div>`;
+    const checked = selected.has(o) ? 'checked' : '';
+    return `<label class="ms-option" style="display:flex;align-items:center;gap:8px;padding:7px 12px;font-size:13px;color:var(--text);cursor:pointer;transition:background 0.1s;" onmouseover="this.style.background='rgba(59,130,246,0.05)'" onmouseout="this.style.background=''">
+      <input type="checkbox" value="${(o||'').replace(/"/g,'&quot;')}" ${checked} style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;">
+      ${o}</label>`;
+  }).join('');
+
+  dd.addEventListener('change', (e) => {
+    if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') {
+      const vals = Array.from(dd.querySelectorAll('input[type=checkbox]:checked')).map(c => c.value).filter(v => v);
+      container._msSelected = vals;
+      updateMSLabel(id);
+    }
+  });
+
+  document.body.appendChild(dd);
+  btn.classList.add('open');
+
+  setTimeout(() => {
+    document.addEventListener('mousedown', _closeMS = (e) => {
+      if (!e.target.closest('#msBodyDropdown') && !e.target.closest(`#${id}`)) {
+        const d = document.getElementById('msBodyDropdown');
+        if (d) d.remove();
+        btn.classList.remove('open');
+        document.removeEventListener('mousedown', _closeMS);
+      }
+    });
+  }, 0);
+}

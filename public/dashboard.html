@@ -137,24 +137,49 @@
 
       <div class="filtros-bar">
         <div class="filtro-group">
-          <label>Localidade VLI</label>
-          <input type="text" id="filtroLocalidade" placeholder="Digite ou selecione..." autocomplete="off">
+          <div class="multi-select" id="msLocalidade">
+            <button type="button" class="ms-btn" onclick="toggleMS('msLocalidade')">
+              <span class="ms-label">Localidade VLI</span>
+              <span class="ms-count">Todos</span>
+              <span class="ms-arrow">▼</span>
+            </button>
+          </div>
         </div>
         <div class="filtro-group">
-          <label>Status WXP</label>
-          <select id="filtroStatusWxp"><option value="">Todos</option></select>
+          <div class="multi-select" id="msWxp">
+            <button type="button" class="ms-btn" onclick="toggleMS('msWxp')">
+              <span class="ms-label">Status WXP</span>
+              <span class="ms-count">Todos</span>
+              <span class="ms-arrow">▼</span>
+            </button>
+          </div>
         </div>
         <div class="filtro-group">
-          <label>Status ServiceNow</label>
-          <select id="filtroStatusSN"><option value="">Todos</option></select>
+          <div class="multi-select" id="msServiceNow">
+            <button type="button" class="ms-btn" onclick="toggleMS('msServiceNow')">
+              <span class="ms-label">Status SN</span>
+              <span class="ms-count">Todos</span>
+              <span class="ms-arrow">▼</span>
+            </button>
+          </div>
         </div>
         <div class="filtro-group">
-          <label>Status Geral</label>
-          <select id="filtroStatus"><option value="">Todos</option></select>
+          <div class="multi-select" id="msStatus">
+            <button type="button" class="ms-btn" onclick="toggleMS('msStatus')">
+              <span class="ms-label">Status Geral</span>
+              <span class="ms-count">Todos</span>
+              <span class="ms-arrow">▼</span>
+            </button>
+          </div>
         </div>
         <div class="filtro-group">
-          <label>Tipo Equipamento</label>
-          <select id="filtroTipo"><option value="">Todos</option></select>
+          <div class="multi-select" id="msTipo">
+            <button type="button" class="ms-btn" onclick="toggleMS('msTipo')">
+              <span class="ms-label">Tipo Equip.</span>
+              <span class="ms-count">Todos</span>
+              <span class="ms-arrow">▼</span>
+            </button>
+          </div>
         </div>
         <button class="btn btn-primary btn-sm" onclick="aplicarFiltros()">Filtrar</button>
         <button class="btn btn-outline btn-sm" onclick="limparFiltros()">Limpar</button>
