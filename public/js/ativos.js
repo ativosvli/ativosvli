@@ -170,8 +170,8 @@ async function visualizarAtivo(id) {
     preencherDetalhe('det_localidade_vli', ativo.localidade_vli);
     preencherDetalhe('det_setor', ativo.setor);
     preencherDetalheStatus(ativo.status_geral);
-    preencherDetalhe('det_data_instalacao', ativo.data_instalacao);
-    preencherDetalhe('det_data_entrega', ativo.data_entrega);
+    preencherDetalhe('det_data_instalacao', ativo.data_instalacao ? ativo.data_instalacao.split('-').reverse().join('/') : '');
+    preencherDetalhe('det_data_entrega', ativo.data_entrega ? ativo.data_entrega.split('-').reverse().join('/') : '');
     preencherDetalhe('det_evidencias_instalacoes', ativo.evidencias_instalacoes, ativo.evidencias_instalacoes === 'Enviado' ? '📸 ' : ativo.evidencias_instalacoes === 'Pendente' ? '⏳ ' : '');
     preencherDetalhe('det_status_servicenow', ativo.status_servicenow);
     preencherDetalhe('det_chamado_servicenow', ativo.chamado_servicenow);

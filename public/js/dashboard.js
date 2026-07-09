@@ -781,8 +781,8 @@ async function dashVisualizarAtivo(id) {
       { label: 'Item', val: ativo.item },
       { label: 'NF', val: ativo.nf },
       { label: 'Comentário', val: ativo.comentario, full: true },
-      { label: 'Data de Instalação', val: ativo.data_instalacao },
-      { label: 'Data de Entrega', val: ativo.data_entrega }
+      { label: 'Data de Instalação', val: ativo.data_instalacao ? ativo.data_instalacao.split('-').reverse().join('/') : '' },
+      { label: 'Data de Entrega', val: ativo.data_entrega ? ativo.data_entrega.split('-').reverse().join('/') : '' }
     ];
 
     document.getElementById('dashDetalheConteudo').innerHTML = campos.map(c => {
