@@ -338,7 +338,7 @@ router.get('/filtros/opcoes', (req, res) => {
   const localidades = db.prepare("SELECT DISTINCT localidade_vli FROM ativos WHERE localidade_vli IS NOT NULL AND localidade_vli != '' ORDER BY localidade_vli").all();
   const setores = db.prepare("SELECT DISTINCT setor FROM ativos WHERE setor IS NOT NULL AND setor != '' ORDER BY setor").all();
   const statusGeraisDB = db.prepare("SELECT DISTINCT status_geral FROM ativos WHERE status_geral IS NOT NULL AND status_geral != '' ORDER BY status_geral").all();
-  const statusFixos = ['Em Operação', 'Em Estoque(-60Dias)', 'Em Estoque(+60Dias)', 'Reservado', 'Backup', 'Backup em Uso', 'Estoque TI VLI', 'Homologação', 'Processo de Entrega', 'Estoque Não Localizado', 'Em Manutenção', 'Backup em Utilização', 'SAP Configurado'];
+  const statusFixos = ['Em Operação', 'Em Estoque(-60Dias)', 'Em Estoque(+60Dias)', 'Reservado', 'Backup', 'Backup em Uso', 'Estoque TI VLI', 'Homologação', 'Processo de Entrega', 'Estoque Não Localizado', 'Em Manutenção', 'SAP Configurado'];
   const statusGeraisSet = new Set(statusGeraisDB.map(s => s.status_geral));
   statusFixos.forEach(s => statusGeraisSet.add(s));
   const statusGerais = [...statusGeraisSet].sort((a, b) => a.localeCompare(b));
