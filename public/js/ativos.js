@@ -3,7 +3,7 @@ let totalAtivos = 0;
 let ativoEditandoId = null;
 let ultimoAtivoVisualizado = null;
 
-const STATUS_GERAIS = ['Em Operação', 'Em Estoque(-60Dias)', 'Em Estoque(+60Dias)', 'Reservado', 'Backup', 'Backup em Uso', 'Estoque TI VLI', 'Homologação', 'Processo de Entrega', 'Estoque Não Localizado', 'Em Manutenção', 'Backup em Utilização', 'SAP Configurado'];
+const STATUS_GERAIS = ['Em Operação', 'Em Estoque(-60Dias)', 'Em Estoque(+60Dias)', 'Reservado', 'Backup', 'Backup em Uso', 'Estoque TI VLI', 'Homologação', 'Processo de Entrega', 'Estoque Não Localizado', 'Em Manutenção', 'SAP Configurado'];
 
 document.addEventListener('DOMContentLoaded', () => {
   carregarFiltrosDrop();
