@@ -3,7 +3,7 @@ let totalAtivos = 0;
 let ativoEditandoId = null;
 let ultimoAtivoVisualizado = null;
 
-const STATUS_GERAIS = ['Em Operação', 'Em Estoque(-60Dias)', 'Em Estoque(+60Dias)', 'Reservado', 'Backup', 'Estoque TI VLI', 'Homologação', 'Processo de Entrega', 'Estoque Não Localizado', 'Em Manutenção', 'Backup em Utilização', 'SAP Configurado'];
+const STATUS_GERAIS = ['Em Operação', 'Em Estoque(-60Dias)', 'Em Estoque(+60Dias)', 'Reservado', 'Backup', 'Backup em Uso', 'Estoque TI VLI', 'Homologação', 'Processo de Entrega', 'Estoque Não Localizado', 'Em Manutenção', 'Backup em Utilização', 'SAP Configurado'];
 
 document.addEventListener('DOMContentLoaded', () => {
   carregarFiltrosDrop();
@@ -76,7 +76,7 @@ function getStatusClass(status) {
   if (status === 'Em Operação') return 'status-operacao';
   if (status?.includes('Estoque')) return 'status-estoque';
   if (status === 'Em Manutenção') return 'status-manutencao';
-  if (status === 'Backup' || status === 'Backup em Utilização') return 'status-backup';
+  if (status === 'Backup' || status === 'Backup em Utilização' || status === 'Backup em Uso') return 'status-backup';
   return 'status-outros';
 }
 
@@ -170,6 +170,8 @@ async function visualizarAtivo(id) {
     preencherDetalhe('det_localidade_vli', ativo.localidade_vli);
     preencherDetalhe('det_setor', ativo.setor);
     preencherDetalheStatus(ativo.status_geral);
+    preencherDetalhe('det_data_instalacao', ativo.data_instalacao);
+    preencherDetalhe('det_data_entrega', ativo.data_entrega);
     preencherDetalhe('det_evidencias_instalacoes', ativo.evidencias_instalacoes, ativo.evidencias_instalacoes === 'Enviado' ? '📸 ' : ativo.evidencias_instalacoes === 'Pendente' ? '⏳ ' : '');
     preencherDetalhe('det_status_servicenow', ativo.status_servicenow);
     preencherDetalhe('det_chamado_servicenow', ativo.chamado_servicenow);
@@ -264,14 +266,14 @@ function renderFotos(containerId, fotos) {
 function limparFormulario() {
   const campos = ['serie_equipamento','serie_ux','status_wxp','localidade_vli','setor','status_geral',
     'evidencias_instalacoes','status_servicenow','chamado_servicenow','especificacao_servicenow',
-    'tipo_equipamento','modelo','item','nf','comentario'];
+    'tipo_equipamento','modelo','item','nf','comentario','data_instalacao','data_entrega'];
   campos.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
 }
 
 function preencherFormulario(ativo) {
   const campos = ['serie_equipamento','serie_ux','status_wxp','localidade_vli','setor','status_geral',
     'evidencias_instalacoes','status_servicenow','chamado_servicenow','especificacao_servicenow',
-    'tipo_equipamento','modelo','item','nf','comentario'];
+    'tipo_equipamento','modelo','item','nf','comentario','data_instalacao','data_entrega'];
   campos.forEach(campo => { const el = document.getElementById(campo); if (el) el.value = ativo[campo] || ''; });
 }
 
@@ -288,7 +290,7 @@ function salvarAtivo() {
   const dados = {};
   const campos = ['serie_equipamento','serie_ux','status_wxp','localidade_vli','setor','status_geral',
     'evidencias_instalacoes','status_servicenow','chamado_servicenow','especificacao_servicenow',
-    'tipo_equipamento','modelo','item','nf','comentario'];
+    'tipo_equipamento','modelo','item','nf','comentario','data_instalacao','data_entrega'];
   campos.forEach(campo => { dados[campo] = document.getElementById(campo).value; });
 
   fecharModal('modalAtivo');

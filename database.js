@@ -142,6 +142,8 @@ function initializeDatabase() {
 
 function migrateDatabase() {
   try { db.exec("ALTER TABLE ativos ADD COLUMN setor TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE ativos ADD COLUMN data_instalacao TEXT"); } catch (e) {}
+  try { db.exec("ALTER TABLE ativos ADD COLUMN data_entrega TEXT"); } catch (e) {}
 }
 
 module.exports = { getDatabase };

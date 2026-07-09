@@ -179,7 +179,8 @@
           localidade_vli: 'Localidade VLI', setor: 'Setor', status_geral: 'Status Geral',
           evidencias_instalacoes: 'Evidências Instalações', status_servicenow: 'Status ServiceNow',
           chamado_servicenow: 'Chamado ServiceNow', especificacao_servicenow: 'Especificação ServiceNow',
-          tipo_equipamento: 'Tipo Equipamento', modelo: 'Modelo', item: 'Item', nf: 'NF', comentario: 'Comentário'
+          tipo_equipamento: 'Tipo Equipamento', modelo: 'Modelo', item: 'Item', nf: 'NF', comentario: 'Comentário',
+          data_instalacao: 'Data de Instalação', data_entrega: 'Data de Entrega'
         };
         container.innerHTML = data.registros.map(r => {
           const dadosAnteriores = r.dados_anteriores ? JSON.parse(r.dados_anteriores) : null;

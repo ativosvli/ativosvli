@@ -21,7 +21,7 @@ router.get('/', (req, res) => {
 
   const registros = db.prepare(query).all(...params);
 
-  const camposExclusao = ['serie_equipamento','serie_ux','status_wxp','localidade_vli','setor','status_geral','status_servicenow','tipo_equipamento','modelo','item','nf','comentario'];
+  const camposExclusao = ['serie_equipamento','serie_ux','status_wxp','localidade_vli','setor','status_geral','status_servicenow','tipo_equipamento','modelo','item','nf','comentario','data_instalacao','data_entrega'];
 
   const dadosPlanilha = registros.map(r => {
     let serie = r.serie || 'N/A';

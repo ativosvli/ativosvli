@@ -22,7 +22,7 @@ router.get('/', async (req, res) => {
   const horaStr = new Date().toLocaleTimeString('pt-BR');
   const db = getDatabase();
 
-  const colunas = 'serie_equipamento, serie_ux, status_wxp, localidade_vli, status_geral, evidencias_instalacoes, status_servicenow, chamado_servicenow, especificacao_servicenow, tipo_equipamento, modelo, nf, comentario';
+  const colunas = 'serie_equipamento, serie_ux, status_wxp, localidade_vli, status_geral, evidencias_instalacoes, status_servicenow, chamado_servicenow, especificacao_servicenow, tipo_equipamento, modelo, nf, comentario, data_instalacao, data_entrega';
   let where = [];
   let params = [];
 
@@ -52,18 +52,18 @@ router.get('/', async (req, res) => {
 
   const totalAtivos = ativos.length;
 
-  const infoHeader = [
-    [`Exportado por: ${usuario.nome}`],
-    [`Data: ${dataStr} às ${horaStr}`],
-    [`Total de registros: ${totalAtivos}`],
+const infoHeader = [
+    [`Exportado por: ${usuario.nome}`, '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    [`Data: ${dataStr} às ${horaStr}`, '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+    [`Total de registros: ${totalAtivos}`, '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
   ];
 
-  const dadosPlanilha = ativos.map(a => ({
+const dadosPlanilha = ativos.map(a => ({
     'Série MAPA': a.serie_equipamento || '',
     'Status UX': a.serie_ux || '',
     'Status WXP': a.status_wxp || '',
     'Localidade VLI': a.localidade_vli || '',
-    'Status Geral': a.status_geral || '',
+    'Status Geral Simpress': a.status_geral || '',
     'Evidências Instalações': a.evidencias_instalacoes || '',
     'Status ServiceNow': a.status_servicenow || '',
     'Chamado ServiceNOW': a.chamado_servicenow || '',
@@ -71,18 +71,20 @@ router.get('/', async (req, res) => {
     'Tipo Equipamento': a.tipo_equipamento || '',
     'Modelo': a.modelo || '',
     'NF': a.nf || '',
-    'Observações': a.comentario || ''
+    'Observações': (a.comentario || '').replace(/\n/g, ' ').replace(/\r/g, ' '),
+    'Data de Instalação': a.data_instalacao || '',
+    'Data de Entrega': a.data_entrega || ''
   }));
 
-  const ws = XLSX.utils.json_to_sheet(dadosPlanilha);
+  const ws = XLSX.utils.json_to_sheet(dadosPlanilha, { origin: 'A4' });
 
   XLSX.utils.sheet_add_aoa(ws, infoHeader, { origin: 'A1' });
 
-  const headerRowIndex = infoHeader.length;
+  const headerRowIndex = 4;
   const colWidths = [
     { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 25 },
     { wch: 20 }, { wch: 15 }, { wch: 20 }, { wch: 25 }, { wch: 25 },
-    { wch: 40 }, { wch: 15 }, { wch: 30 }
+    { wch: 40 }, { wch: 15 }, { wch: 30 }, { wch: 15 }, { wch: 15 }
   ];
   ws['!cols'] = colWidths;
 

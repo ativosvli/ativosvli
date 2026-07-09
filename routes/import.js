@@ -35,7 +35,9 @@ const mapearCampos = {
   'Tipo\r\nEquipamento': 'tipo_equipamento',
   'Modelo': 'modelo',
   'NF': 'nf',
-  'Observações': 'comentario'
+  'Observações': 'comentario',
+  'Data de Instalação': 'data_instalacao',
+  'Data de Entrega': 'data_entrega'
 };
 
 router.post('/', autenticar, adminApenas, upload.single('arquivo'), (req, res) => {
@@ -57,10 +59,10 @@ router.post('/', autenticar, adminApenas, upload.single('arquivo'), (req, res) =
     const insertStmt = db.prepare(`
       INSERT INTO ativos (serie_equipamento, serie_ux, status_wxp, localidade_vli, setor, status_geral,
         evidencias_instalacoes, status_servicenow, chamado_servicenow, especificacao_servicenow,
-        tipo_equipamento, modelo, item, nf, comentario)
+        tipo_equipamento, modelo, item, nf, comentario, data_instalacao, data_entrega)
       VALUES (@serie_equipamento, @serie_ux, @status_wxp, @localidade_vli, @setor, @status_geral,
         @evidencias_instalacoes, @status_servicenow, @chamado_servicenow, @especificacao_servicenow,
-        @tipo_equipamento, @modelo, @item, @nf, @comentario)
+        @tipo_equipamento, @modelo, @item, @nf, @comentario, @data_instalacao, @data_entrega)
     `);
 
     let importados = 0;

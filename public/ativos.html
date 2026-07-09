@@ -174,12 +174,12 @@
         <div class="form-group"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Status Geral</label>
+        <div class="form-group"><label>Status Geral Simpress</label>
           <select id="status_geral">
             <option value="">Selecione...</option>
             <option>Em Operação</option><option>Em Estoque(-60Dias)</option>
             <option>Em Estoque(+60Dias)</option><option>Reservado</option>
-            <option>Backup</option><option>Estoque TI VLI</option>
+            <option>Backup</option><option>Backup em Uso</option><option>Estoque TI VLI</option>
             <option>Homologação</option><option>Processo de Entrega</option>
             <option>Estoque Não Localizado</option><option>Em Manutenção</option>
             <option>Backup em Utilização</option><option>SAP Configurado</option>
@@ -235,6 +235,10 @@
       </div>
       <div class="form-row">
         <div class="form-group full"><label>Comentário</label><textarea id="comentario" rows="3"></textarea></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Data de Instalação</label><input type="date" id="data_instalacao"></div>
+        <div class="form-group"><label>Data de Entrega</label><input type="date" id="data_entrega"></div>
       </div>
       <div id="fotosAtivo" style="display:none;">
         <div class="form-group full">
@@ -313,7 +317,9 @@
         <div class="detail-group"><label>Status WXP</label><span id="det_status_wxp">-</span></div>
         <div class="detail-group"><label>Localidade VLI</label><span id="det_localidade_vli">-</span></div>
         <div class="detail-group"><label>Setor</label><span id="det_setor">-</span></div>
-        <div class="detail-group"><label>Status Geral</label><span id="det_status_geral">-</span></div>
+        <div class="detail-group"><label>Status Geral Simpress</label><span id="det_status_geral">-</span></div>
+        <div class="detail-group"><label>Data de Instalação</label><span id="det_data_instalacao">-</span></div>
+        <div class="detail-group"><label>Data de Entrega</label><span id="det_data_entrega">-</span></div>
         <div class="detail-group"><label>Evidências Instalações (Fotos e check list)</label><span id="det_evidencias_instalacoes">-</span></div>
         <div class="detail-group"><label>Status ServiceNow</label><span id="det_status_servicenow">-</span></div>
         <div class="detail-group"><label>Chamado ServiceNOW</label><span id="det_chamado_servicenow">-</span></div>

@@ -89,10 +89,10 @@ router.post('/', autenticar, adminApenas, (req, res) => {
   const result = db.prepare(`
     INSERT INTO ativos (serie_equipamento, serie_ux, status_wxp, localidade_vli, setor, status_geral,
       evidencias_instalacoes, status_servicenow, chamado_servicenow, especificacao_servicenow,
-      tipo_equipamento, modelo, item, nf, comentario)
+      tipo_equipamento, modelo, item, nf, comentario, data_instalacao, data_entrega)
     VALUES (@serie_equipamento, @serie_ux, @status_wxp, @localidade_vli, @setor, @status_geral,
       @evidencias_instalacoes, @status_servicenow, @chamado_servicenow, @especificacao_servicenow,
-      @tipo_equipamento, @modelo, @item, @nf, @comentario)
+      @tipo_equipamento, @modelo, @item, @nf, @comentario, @data_instalacao, @data_entrega)
   `).run(dados);
 
   registrarAuditoria(req.usuario, 'CRIACAO', justificativa, result.lastInsertRowid, null, dados);
@@ -120,6 +120,7 @@ router.put('/:id', autenticar, adminApenas, (req, res) => {
       status_servicenow = @status_servicenow, chamado_servicenow = @chamado_servicenow,
       especificacao_servicenow = @especificacao_servicenow, tipo_equipamento = @tipo_equipamento,
       modelo = @modelo, item = @item, nf = @nf, comentario = @comentario,
+      data_instalacao = @data_instalacao, data_entrega = @data_entrega,
       updated_at = CURRENT_TIMESTAMP
     WHERE id = @id
   `).run({ ...dados, id: req.params.id });
@@ -336,7 +337,11 @@ router.get('/filtros/opcoes', (req, res) => {
 
   const localidades = db.prepare("SELECT DISTINCT localidade_vli FROM ativos WHERE localidade_vli IS NOT NULL AND localidade_vli != '' ORDER BY localidade_vli").all();
   const setores = db.prepare("SELECT DISTINCT setor FROM ativos WHERE setor IS NOT NULL AND setor != '' ORDER BY setor").all();
-  const statusGerais = db.prepare("SELECT DISTINCT status_geral FROM ativos WHERE status_geral IS NOT NULL AND status_geral != '' ORDER BY status_geral").all();
+  const statusGeraisDB = db.prepare("SELECT DISTINCT status_geral FROM ativos WHERE status_geral IS NOT NULL AND status_geral != '' ORDER BY status_geral").all();
+  const statusFixos = ['Em Operação', 'Em Estoque(-60Dias)', 'Em Estoque(+60Dias)', 'Reservado', 'Backup', 'Backup em Uso', 'Estoque TI VLI', 'Homologação', 'Processo de Entrega', 'Estoque Não Localizado', 'Em Manutenção', 'Backup em Utilização', 'SAP Configurado'];
+  const statusGeraisSet = new Set(statusGeraisDB.map(s => s.status_geral));
+  statusFixos.forEach(s => statusGeraisSet.add(s));
+  const statusGerais = [...statusGeraisSet].sort((a, b) => a.localeCompare(b));
   const statusWxp = db.prepare("SELECT DISTINCT status_wxp FROM ativos WHERE status_wxp IS NOT NULL AND status_wxp != '' ORDER BY status_wxp").all();
   const statusServiceNow = db.prepare("SELECT DISTINCT status_servicenow FROM ativos WHERE status_servicenow IS NOT NULL AND status_servicenow != '' ORDER BY status_servicenow").all();
   const tipos = db.prepare("SELECT DISTINCT tipo_equipamento FROM ativos WHERE tipo_equipamento IS NOT NULL AND tipo_equipamento != '' ORDER BY tipo_equipamento").all();
@@ -344,7 +349,7 @@ router.get('/filtros/opcoes', (req, res) => {
   res.json({
     localidades: localidades.map(l => l.localidade_vli),
     setores: setores.map(s => s.setor),
-    statusGerais: statusGerais.map(s => s.status_geral),
+    statusGerais,
     statusWxp: statusWxp.map(s => s.status_wxp),
     statusServiceNow: statusServiceNow.map(s => s.status_servicenow),
     tipos: tipos.map(t => t.tipo_equipamento)

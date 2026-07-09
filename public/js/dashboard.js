@@ -72,10 +72,11 @@ function conectarSSE() {
 
 const CAMPOS_LABELS = {
   serie_equipamento: 'Série Equipamento', serie_ux: 'Status UX', status_wxp: 'Status WXP',
-  localidade_vli: 'Localidade VLI', setor: 'Setor', status_geral: 'Status Geral',
+  localidade_vli: 'Localidade VLI', setor: 'Setor', status_geral: 'Status Geral Simpress',
   evidencias_instalacoes: 'Evidências Instalações', status_servicenow: 'Status ServiceNow',
   chamado_servicenow: 'Chamado ServiceNow', especificacao_servicenow: 'Especificação ServiceNow',
-  tipo_equipamento: 'Tipo Equipamento', modelo: 'Modelo', item: 'Item', nf: 'NF', comentario: 'Comentário'
+  tipo_equipamento: 'Tipo Equipamento', modelo: 'Modelo', item: 'Item', nf: 'NF', comentario: 'Comentário',
+  data_instalacao: 'Data de Instalação', data_entrega: 'Data de Entrega'
 };
 function detalhesTooltip(data) {
   let info = '';
@@ -585,7 +586,7 @@ async function carregarAtivosFiltrados() {
       const sc = a.status_geral === 'Em Operação' ? 'status-operacao' :
         a.status_geral?.includes('Estoque') ? 'status-estoque' :
         a.status_geral === 'Em Manutenção' ? 'status-manutencao' :
-        (a.status_geral === 'Backup' || a.status_geral === 'Backup em Utilização') ? 'status-backup' : 'status-outros';
+        (a.status_geral === 'Backup' || a.status_geral === 'Backup em Utilização' || a.status_geral === 'Backup em Uso') ? 'status-backup' : 'status-outros';
       return `<tr>
         <td><strong>${a.serie_equipamento || '-'}</strong></td>
         <td>${a.serie_ux || '-'}</td>
@@ -770,7 +771,7 @@ async function dashVisualizarAtivo(id) {
       { label: 'Status WXP', val: ativo.status_wxp },
       { label: 'Localidade VLI', val: ativo.localidade_vli },
       { label: 'Setor', val: ativo.setor },
-      { label: 'Status Geral', val: ativo.status_geral, cls: true },
+      { label: 'Status Geral Simpress', val: ativo.status_geral, cls: true },
       { label: 'Evidências Instalações', val: ativo.evidencias_instalacoes },
       { label: 'Status ServiceNow', val: ativo.status_servicenow },
       { label: 'Chamado ServiceNOW', val: ativo.chamado_servicenow },
@@ -779,7 +780,9 @@ async function dashVisualizarAtivo(id) {
       { label: 'Modelo', val: ativo.modelo, full: true },
       { label: 'Item', val: ativo.item },
       { label: 'NF', val: ativo.nf },
-      { label: 'Comentário', val: ativo.comentario, full: true }
+      { label: 'Comentário', val: ativo.comentario, full: true },
+      { label: 'Data de Instalação', val: ativo.data_instalacao },
+      { label: 'Data de Entrega', val: ativo.data_entrega }
     ];
 
     document.getElementById('dashDetalheConteudo').innerHTML = campos.map(c => {
@@ -804,7 +807,7 @@ function getSC(status) {
   if (status === 'Em Operação') return 'status-operacao';
   if (status?.includes('Estoque')) return 'status-estoque';
   if (status === 'Em Manutenção') return 'status-manutencao';
-  if (status === 'Backup' || status === 'Backup em Utilização') return 'status-backup';
+  if (status === 'Backup' || status === 'Backup em Utilização' || status === 'Backup em Uso') return 'status-backup';
   return 'status-outros';
 }
 
@@ -817,7 +820,7 @@ function abrirModalNovoDash() {
   const campos = ['dEdit_serie_equipamento','dEdit_serie_ux','dEdit_status_wxp','dEdit_localidade_vli','dEdit_setor',
     'dEdit_status_geral','dEdit_evidencias_instalacoes','dEdit_status_servicenow',
     'dEdit_chamado_servicenow','dEdit_especificacao_servicenow','dEdit_tipo_equipamento',
-    'dEdit_modelo','dEdit_item','dEdit_nf','dEdit_comentario'];
+    'dEdit_modelo','dEdit_item','dEdit_nf','dEdit_comentario','dEdit_data_instalacao','dEdit_data_entrega'];
   campos.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.querySelector('#modalEditarDash h3 span').textContent = 'Novo Ativo';
   abrirModal('modalEditarDash');
@@ -846,7 +849,9 @@ async function dashEditarAtivo(id) {
       'dEdit_modelo': ativo.modelo,
       'dEdit_item': ativo.item,
       'dEdit_nf': ativo.nf,
-      'dEdit_comentario': ativo.comentario
+      'dEdit_comentario': ativo.comentario,
+      'dEdit_data_instalacao': ativo.data_instalacao,
+      'dEdit_data_entrega': ativo.data_entrega
     };
 
     Object.entries(map).forEach(([id, val]) => {
@@ -864,7 +869,7 @@ async function salvarEdicaoDash() {
   const dados = {};
   const campos = ['serie_equipamento','serie_ux','status_wxp','localidade_vli','setor','status_geral',
     'evidencias_instalacoes','status_servicenow','chamado_servicenow','especificacao_servicenow',
-    'tipo_equipamento','modelo','item','nf','comentario'];
+    'tipo_equipamento','modelo','item','nf','comentario','data_instalacao','data_entrega'];
   campos.forEach(c => { dados[c] = document.getElementById('dEdit_' + c).value; });
 
   fecharModal('modalEditarDash');
