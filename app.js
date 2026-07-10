@@ -6,6 +6,7 @@ const fs = require('fs');
 const { sseHandler } = require('./events');
 
 const app = express();
+app.set('trust proxy', 1);
 
 const tempDir = process.env.TEMP_DIR || (process.env.LAMBDA_TASK_ROOT ? '/tmp/temp_uploads' : path.join(__dirname, 'temp_uploads'));
 if (!fs.existsSync(tempDir)) {
