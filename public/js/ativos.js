@@ -69,13 +69,17 @@ function carregarFiltrosDrop() {
       url = buildMSQuery(url, 'msTipo', 'tipo_equipamento');
       if (busca) url += `&search=${encodeURIComponent(busca)}`;
 
+    console.log('Filtrando URL:', url);
     const res = await fetch(url, {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     });
     if (res.status === 401) { window.location.href = '/'; return; }
+    if (!res.ok) { console.error('Erro HTTP:', res.status); document.getElementById('totalBadge').textContent = `Erro ${res.status}`; return; }
     const data = await res.json();
+    console.log('Resposta:', data.total, 'registros');
     totalAtivos = data.total;
     document.getElementById('totalBadge').textContent = `${data.total} registros`;
+    if (data.ativos && data.ativos.length === 0) console.log('Filtro retornou 0 resultados');
     renderTabela(data.ativos);
     renderPaginacao(data.total);
   } catch (err) {
