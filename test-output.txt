@@ -1,0 +1,10 @@
+◇ injected env (9) from .env // tip: ⌘ suppress logs { quiet: true }
+
+========================================
+  Gestão de Ativos HAAS VLI - Servidor Online
+  http://0.0.0.0:3099
+========================================
+  Admin: admin / admin123
+========================================
+
+

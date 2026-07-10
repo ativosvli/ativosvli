@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function carregarFiltrosDrop() {
+  populateMS('msStatus', STATUS_GERAIS);
+
   return fetch('/api/ativos/filtros/opcoes', {
     headers: { 'Authorization': `Bearer ${getToken()}` }
   })
