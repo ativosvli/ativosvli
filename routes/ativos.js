@@ -180,50 +180,29 @@ router.get('/dashboard/totais', async (req, res) => {
   addInFilter('setor', 'setor');
 
   const whereClause = where.length > 0 ? 'WHERE ' + where.join(' AND ') : '';
-  const paramsForCount = [...params];
-
-  const statusGeral = await db.prepare(`
-    SELECT status_geral, COUNT(*) as total FROM ativos ${whereClause}
-    GROUP BY status_geral ORDER BY total DESC
-  `).all(...params);
-
-  const tipoEquipamento = await db.prepare(`
-    SELECT tipo_equipamento, COUNT(*) as total FROM ativos ${whereClause}
-    GROUP BY tipo_equipamento ORDER BY total DESC
-  `).all(...params);
-
-  const localidadeVLI = await db.prepare(`
-    SELECT localidade_vli, COUNT(*) as total FROM ativos ${whereClause}
-    GROUP BY localidade_vli ORDER BY total DESC
-  `).all(...params);
-
   const modelosWhere = whereClause
     ? whereClause + ' AND modelo IS NOT NULL AND modelo != \'\''
     : 'WHERE modelo IS NOT NULL AND modelo != \'\'';
-  const modelos = await db.prepare(`
-    SELECT modelo, COUNT(*) as total FROM ativos ${modelosWhere}
-    GROUP BY modelo ORDER BY total DESC LIMIT 5
-  `).all(...params);
 
-  const totalGeral = await db.prepare(`SELECT COUNT(*) as total FROM ativos ${whereClause}`).get(...params);
-  const totalPorStatus = await db.prepare(`
-    SELECT 
-      SUM(CASE WHEN status_geral = 'Em Operação' THEN 1 ELSE 0 END) as em_operacao,
-      SUM(CASE WHEN status_geral LIKE '%Estoque%' THEN 1 ELSE 0 END) as em_estoque,
-      SUM(CASE WHEN status_geral = 'Em Manutenção' THEN 1 ELSE 0 END) as em_manutencao,
-      SUM(CASE WHEN status_geral = 'Backup' OR status_geral = 'Backup em Utilização' THEN 1 ELSE 0 END) as backup,
-      SUM(CASE WHEN status_geral NOT IN ('Em Operação','Em Estoque(-60Dias)','Em Estoque(+60Dias)','Em Manutenção','Backup','Backup em Utilização') THEN 1 ELSE 0 END) as outros,
-      COUNT(*) as total
-    FROM ativos ${whereClause}
-  `).get(...params);
+  const uxWhere = whereClause
+    ? whereClause + ' AND (serie_ux IS NULL OR serie_ux = \'\' OR serie_ux = \'Pendente\')'
+    : 'WHERE (serie_ux IS NULL OR serie_ux = \'\' OR serie_ux = \'Pendente\')';
 
-  const uxPendentes = await db.prepare(`SELECT COUNT(*) as total FROM ativos ${whereClause ? whereClause + ' AND' : 'WHERE'} (serie_ux IS NULL OR serie_ux = '' OR serie_ux = 'Pendente')`).get(...params);
-  const wxpPendentes = await db.prepare(`SELECT COUNT(*) as total FROM ativos ${whereClause ? whereClause + ' AND' : 'WHERE'} (status_wxp IS NULL OR status_wxp = '' OR status_wxp = 'Pendente')`).get(...params);
+  const wxpWhere = whereClause
+    ? whereClause + ' AND (status_wxp IS NULL OR status_wxp = \'\' OR status_wxp = \'Pendente\')'
+    : 'WHERE (status_wxp IS NULL OR status_wxp = \'\' OR status_wxp = \'Pendente\')';
 
-  const especificacaoSN = await db.prepare(`
-    SELECT especificacao_servicenow, COUNT(*) as total FROM ativos ${whereClause}
-    GROUP BY especificacao_servicenow ORDER BY total DESC
-  `).all(...params);
+  const [statusGeral, tipoEquipamento, localidadeVLI, modelos, totalGeral, totalPorStatus, uxPendentes, wxpPendentes, especificacaoSN] = await Promise.all([
+    db.prepare(`SELECT status_geral, COUNT(*) as total FROM ativos ${whereClause} GROUP BY status_geral ORDER BY total DESC`).all(...params),
+    db.prepare(`SELECT tipo_equipamento, COUNT(*) as total FROM ativos ${whereClause} GROUP BY tipo_equipamento ORDER BY total DESC`).all(...params),
+    db.prepare(`SELECT localidade_vli, COUNT(*) as total FROM ativos ${whereClause} GROUP BY localidade_vli ORDER BY total DESC`).all(...params),
+    db.prepare(`SELECT modelo, COUNT(*) as total FROM ativos ${modelosWhere} GROUP BY modelo ORDER BY total DESC LIMIT 5`).all(...params),
+    db.prepare(`SELECT COUNT(*) as total FROM ativos ${whereClause}`).get(...params),
+    db.prepare(`SELECT SUM(CASE WHEN status_geral = 'Em Operação' THEN 1 ELSE 0 END) as em_operacao, SUM(CASE WHEN status_geral LIKE '%Estoque%' THEN 1 ELSE 0 END) as em_estoque, SUM(CASE WHEN status_geral = 'Em Manutenção' THEN 1 ELSE 0 END) as em_manutencao, SUM(CASE WHEN status_geral = 'Backup' OR status_geral = 'Backup em Utilização' THEN 1 ELSE 0 END) as backup, SUM(CASE WHEN status_geral NOT IN ('Em Operação','Em Estoque(-60Dias)','Em Estoque(+60Dias)','Em Manutenção','Backup','Backup em Utilização') THEN 1 ELSE 0 END) as outros, COUNT(*) as total FROM ativos ${whereClause}`).get(...params),
+    db.prepare(`SELECT COUNT(*) as total FROM ativos ${uxWhere}`).get(...params),
+    db.prepare(`SELECT COUNT(*) as total FROM ativos ${wxpWhere}`).get(...params),
+    db.prepare(`SELECT especificacao_servicenow, COUNT(*) as total FROM ativos ${whereClause} GROUP BY especificacao_servicenow ORDER BY total DESC`).all(...params)
+  ]);
 
   res.json({ totalGeral: totalGeral.total, totalPorStatus, statusGeral, tipoEquipamento, localidadeVLI, modelos, uxPendentes: uxPendentes.total, wxpPendentes: wxpPendentes.total, especificacaoSN });
 });
@@ -333,28 +312,40 @@ router.get('/dashboard/atividades-recentes', async (req, res) => {
   res.json(atividades);
 });
 
+const filtrosCache = { data: null, time: 0 };
 router.get('/filtros/opcoes', async (req, res) => {
+  if (filtrosCache.data && Date.now() - filtrosCache.time < 30000) {
+    return res.json(filtrosCache.data);
+  }
+
   const db = await getDatabase();
 
-  const localidades = await db.prepare("SELECT DISTINCT localidade_vli FROM ativos WHERE localidade_vli IS NOT NULL AND localidade_vli != '' ORDER BY localidade_vli").all();
-  const setores = await db.prepare("SELECT DISTINCT setor FROM ativos WHERE setor IS NOT NULL AND setor != '' ORDER BY setor").all();
-  const statusGeraisDB = await db.prepare("SELECT DISTINCT status_geral FROM ativos WHERE status_geral IS NOT NULL AND status_geral != '' ORDER BY status_geral").all();
+  const [localidades, setores, statusGeraisDB, statusWxp, statusServiceNow, tipos] = await Promise.all([
+    db.prepare("SELECT DISTINCT localidade_vli FROM ativos WHERE localidade_vli IS NOT NULL AND localidade_vli != '' ORDER BY localidade_vli").all(),
+    db.prepare("SELECT DISTINCT setor FROM ativos WHERE setor IS NOT NULL AND setor != '' ORDER BY setor").all(),
+    db.prepare("SELECT DISTINCT status_geral FROM ativos WHERE status_geral IS NOT NULL AND status_geral != '' ORDER BY status_geral").all(),
+    db.prepare("SELECT DISTINCT status_wxp FROM ativos WHERE status_wxp IS NOT NULL AND status_wxp != '' ORDER BY status_wxp").all(),
+    db.prepare("SELECT DISTINCT status_servicenow FROM ativos WHERE status_servicenow IS NOT NULL AND status_servicenow != '' ORDER BY status_servicenow").all(),
+    db.prepare("SELECT DISTINCT tipo_equipamento FROM ativos WHERE tipo_equipamento IS NOT NULL AND tipo_equipamento != '' ORDER BY tipo_equipamento").all()
+  ]);
+
   const statusFixos = ['Em Operação', 'Em Estoque(-60Dias)', 'Em Estoque(+60Dias)', 'Reservado', 'Backup', 'Backup em Uso', 'Estoque TI VLI', 'Homologação', 'Processo de Entrega', 'Estoque Não Localizado', 'Em Manutenção', 'SAP Configurado'];
   const statusGeraisSet = new Set(statusGeraisDB.map(s => s.status_geral));
   statusFixos.forEach(s => statusGeraisSet.add(s));
   const statusGerais = [...statusGeraisSet].sort((a, b) => a.localeCompare(b));
-  const statusWxp = await db.prepare("SELECT DISTINCT status_wxp FROM ativos WHERE status_wxp IS NOT NULL AND status_wxp != '' ORDER BY status_wxp").all();
-  const statusServiceNow = await db.prepare("SELECT DISTINCT status_servicenow FROM ativos WHERE status_servicenow IS NOT NULL AND status_servicenow != '' ORDER BY status_servicenow").all();
-  const tipos = await db.prepare("SELECT DISTINCT tipo_equipamento FROM ativos WHERE tipo_equipamento IS NOT NULL AND tipo_equipamento != '' ORDER BY tipo_equipamento").all();
 
-  res.json({
+  const data = {
     localidades: localidades.map(l => l.localidade_vli),
     setores: setores.map(s => s.setor),
     statusGerais,
     statusWxp: statusWxp.map(s => s.status_wxp),
     statusServiceNow: statusServiceNow.map(s => s.status_servicenow),
     tipos: tipos.map(t => t.tipo_equipamento)
-  });
+  };
+
+  filtrosCache.data = data;
+  filtrosCache.time = Date.now();
+  res.json(data);
 });
 
 module.exports = router;
