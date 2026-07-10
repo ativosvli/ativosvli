@@ -344,6 +344,19 @@ async function migrateDatabase(db) {
   for (const sql of migrations) {
     try { await db.exec(sql); } catch (e) {}
   }
+
+  const indexes = [
+    "CREATE INDEX IF NOT EXISTS idx_ativos_status_geral ON ativos(status_geral)",
+    "CREATE INDEX IF NOT EXISTS idx_ativos_localidade ON ativos(localidade_vli)",
+    "CREATE INDEX IF NOT EXISTS idx_ativos_tipo ON ativos(tipo_equipamento)",
+    "CREATE INDEX IF NOT EXISTS idx_ativos_setor ON ativos(setor)",
+    "CREATE INDEX IF NOT EXISTS idx_ativos_status_wxp ON ativos(status_wxp)",
+    "CREATE INDEX IF NOT EXISTS idx_ativos_status_servicenow ON ativos(status_servicenow)",
+    "CREATE INDEX IF NOT EXISTS idx_auditoria_created_at ON auditoria(created_at)"
+  ];
+  for (const sql of indexes) {
+    try { await db.exec(sql); } catch (e) {}
+  }
 }
 
 module.exports = { getDatabase };

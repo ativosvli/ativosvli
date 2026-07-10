@@ -230,18 +230,19 @@ router.get('/dashboard/totais', async (req, res) => {
 
 router.get('/dashboard/tendencias', async (req, res) => {
   const db = await getDatabase();
+  const dataLimite = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ');
   const tendencias = await db.prepare(`
     SELECT
-      strftime('%Y-%m', created_at) as mes,
+      SUBSTR(created_at, 1, 7) as mes,
       SUM(CASE WHEN acao = 'CRIACAO' THEN 1 ELSE 0 END) as criacoes,
       SUM(CASE WHEN acao = 'ALTERACAO' THEN 1 ELSE 0 END) as alteracoes,
       SUM(CASE WHEN acao = 'EXCLUSAO' THEN 1 ELSE 0 END) as exclusoes,
       COUNT(*) as total
     FROM auditoria
-    WHERE created_at >= date('now', '-12 months')
-    GROUP BY strftime('%Y-%m', created_at)
+    WHERE created_at >= ?
+    GROUP BY SUBSTR(created_at, 1, 7)
     ORDER BY mes ASC
-  `).all();
+  `).all(dataLimite);
 
   res.json(tendencias);
 });
