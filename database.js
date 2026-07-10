@@ -177,6 +177,7 @@ function createMySQLClient(config) {
 
   function rowToObj(row, columns) {
     if (!row) return undefined;
+    if (typeof row === 'object' && !Array.isArray(row)) return row;
     const obj = {};
     for (let i = 0; i < columns.length; i++) {
       obj[columns[i]] = row[i];
