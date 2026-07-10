@@ -6,8 +6,7 @@ let ultimoAtivoVisualizado = null;
 const STATUS_GERAIS = ['Em Operação', 'Em Estoque(-60Dias)', 'Em Estoque(+60Dias)', 'Reservado', 'Backup', 'Backup em Uso', 'Estoque TI VLI', 'Homologação', 'Processo de Entrega', 'Estoque Não Localizado', 'Em Manutenção', 'SAP Configurado'];
 
 document.addEventListener('DOMContentLoaded', () => {
-  carregarFiltrosDrop();
-  carregarAtivos();
+  Promise.all([carregarFiltrosDrop(), carregarAtivos()]).catch(() => {});
   const user = getUsuario();
   const navUsers = document.getElementById('navUsuarios');
   if (navUsers) navUsers.style.display = user && user.id === 1 ? '' : 'none';
@@ -16,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function carregarFiltrosDrop() {
   populateMS('msStatus', STATUS_GERAIS);
 
-  fetch('/api/ativos/filtros/opcoes', {
+  return fetch('/api/ativos/filtros/opcoes', {
     headers: { 'Authorization': `Bearer ${getToken()}` }
   })
   .then(r => r.json())

@@ -15,9 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   const navUsers = document.getElementById('navUsuarios');
   if (navUsers) navUsers.style.display = user && user.id === 1 ? '' : 'none';
-  carregarOpcoesFiltro();
-  carregarDashboard();
-  carregarAtividadesRecentes();
+  Promise.all([carregarOpcoesFiltro(), carregarDashboard(), carregarAtividadesRecentes()]).catch(() => {});
   conectarSSE();
   document.addEventListener('themechange', () => { carregarDashboard(); });
 });
