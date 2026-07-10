@@ -34,8 +34,8 @@ router.post('/:ativoId', autenticar, adminApenas, upload.single('imagem'), async
       return res.status(400).json({ erro: 'Imagem não enviada' });
     }
 
-    const db = getDatabase();
-    const ativo = db.prepare('SELECT id FROM ativos WHERE id = ?').get(req.params.ativoId);
+    const db = await getDatabase();
+    const ativo = await db.prepare('SELECT id FROM ativos WHERE id = ?').get(req.params.ativoId);
     if (!ativo) {
       return res.status(404).json({ erro: 'Ativo não encontrado' });
     }
@@ -46,7 +46,7 @@ router.post('/:ativoId', autenticar, adminApenas, upload.single('imagem'), async
         public_id: `ativo_${req.params.ativoId}_${Date.now()}`
       });
 
-      db.prepare('INSERT INTO uploads (ativo_id, url, public_id) VALUES (?, ?, ?)').run(
+      await db.prepare('INSERT INTO uploads (ativo_id, url, public_id) VALUES (?, ?, ?)').run(
         req.params.ativoId, result.secure_url, result.public_id
       );
 
@@ -61,8 +61,8 @@ router.post('/:ativoId', autenticar, adminApenas, upload.single('imagem'), async
 
 router.delete('/:uploadId', autenticar, adminApenas, async (req, res) => {
   try {
-    const db = getDatabase();
-    const uploadReg = db.prepare('SELECT * FROM uploads WHERE id = ?').get(req.params.uploadId);
+    const db = await getDatabase();
+    const uploadReg = await db.prepare('SELECT * FROM uploads WHERE id = ?').get(req.params.uploadId);
     if (!uploadReg) {
       return res.status(404).json({ erro: 'Upload não encontrado' });
     }
@@ -75,7 +75,7 @@ router.delete('/:uploadId', autenticar, adminApenas, async (req, res) => {
 
     }
 
-    db.prepare('DELETE FROM uploads WHERE id = ?').run(req.params.uploadId);
+    await db.prepare('DELETE FROM uploads WHERE id = ?').run(req.params.uploadId);
     res.json({ mensagem: 'Imagem removida' });
   } catch (err) {
     res.status(500).json({ erro: 'Erro ao remover: ' + err.message });

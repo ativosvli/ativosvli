@@ -40,7 +40,7 @@ const mapearCampos = {
   'Data de Entrega': 'data_entrega'
 };
 
-router.post('/', autenticar, adminApenas, upload.single('arquivo'), (req, res) => {
+router.post('/', autenticar, adminApenas, upload.single('arquivo'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ erro: 'Arquivo não enviado' });
@@ -55,7 +55,7 @@ router.post('/', autenticar, adminApenas, upload.single('arquivo'), (req, res) =
       return res.status(400).json({ erro: 'Planilha vazia' });
     }
 
-    const db = getDatabase();
+    const db = await getDatabase();
     const insertStmt = db.prepare(`
       INSERT INTO ativos (serie_equipamento, serie_ux, status_wxp, localidade_vli, setor, status_geral,
         evidencias_instalacoes, status_servicenow, chamado_servicenow, especificacao_servicenow,

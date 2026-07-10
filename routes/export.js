@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
     }
   const dataStr = new Date().toLocaleDateString('pt-BR');
   const horaStr = new Date().toLocaleTimeString('pt-BR');
-  const db = getDatabase();
+  const db = await getDatabase();
 
   const colunas = 'serie_equipamento, serie_ux, status_wxp, localidade_vli, status_geral, evidencias_instalacoes, status_servicenow, chamado_servicenow, especificacao_servicenow, tipo_equipamento, modelo, nf, comentario, data_instalacao, data_entrega';
   let where = [];
@@ -41,12 +41,12 @@ router.get('/', async (req, res) => {
   addInFilter('tipo_equipamento', 'tipo_equipamento');
 
   const whereClause = where.length > 0 ? ' WHERE ' + where.join(' AND ') : '';
-  const totalCount = db.prepare(`SELECT COUNT(*) as total FROM ativos${whereClause}`).get(...params).total;
+  const totalCount = (await db.prepare(`SELECT COUNT(*) as total FROM ativos${whereClause}`).get(...params)).total;
 
   let ativos = [];
   const pageSize = 500;
   for (let page = 0; page * pageSize < totalCount; page++) {
-    const batch = db.prepare(`SELECT ${colunas} FROM ativos${whereClause} ORDER BY id DESC LIMIT ? OFFSET ?`).all(...params, pageSize, page * pageSize);
+    const batch = await db.prepare(`SELECT ${colunas} FROM ativos${whereClause} ORDER BY id DESC LIMIT ? OFFSET ?`).all(...params, pageSize, page * pageSize);
     ativos = ativos.concat(batch);
   }
 
@@ -94,7 +94,7 @@ const dadosPlanilha = ativos.map(a => ({
   const base64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
   const nomeArquivo = `ativos_${new Date().toISOString().slice(0, 10)}.xlsx`;
 
-  db.prepare(`
+  await db.prepare(`
     INSERT INTO auditoria (usuario_id, usuario_nome, acao, justificativa, dados_novos)
     VALUES (?, ?, 'EXPORTACAO', ?, ?)
   `).run(usuario.id, usuario.nome, `Exportação de ${totalAtivos} registros`, JSON.stringify({

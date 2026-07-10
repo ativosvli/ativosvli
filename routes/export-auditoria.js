@@ -5,8 +5,8 @@ const { autenticar } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-  const db = getDatabase();
+router.get('/', async (req, res) => {
+  const db = await getDatabase();
 
   let query = `SELECT a.*, COALESCE(ati.serie_equipamento, ati.serie_ux, 'N/A') as serie FROM auditoria a LEFT JOIN ativos ati ON a.ativo_id = ati.id`;
   let where = [];
@@ -19,7 +19,7 @@ router.get('/', (req, res) => {
   if (where.length > 0) query += ' WHERE ' + where.join(' AND ');
   query += ' ORDER BY a.created_at DESC';
 
-  const registros = db.prepare(query).all(...params);
+  const registros = await db.prepare(query).all(...params);
 
   const camposExclusao = ['serie_equipamento','serie_ux','status_wxp','localidade_vli','setor','status_geral','status_servicenow','tipo_equipamento','modelo','item','nf','comentario','data_instalacao','data_entrega'];
 
