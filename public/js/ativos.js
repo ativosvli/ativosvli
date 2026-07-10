@@ -13,13 +13,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function carregarFiltrosDrop() {
-  populateMS('msStatus', STATUS_GERAIS);
-
   return fetch('/api/ativos/filtros/opcoes', {
     headers: { 'Authorization': `Bearer ${getToken()}` }
   })
   .then(r => r.json())
   .then(data => {
+    populateMS('msStatus', data.statusGerais || STATUS_GERAIS);
     populateMS('msTipo', data.tipos || []);
     populateMS('msLocalidade', data.localidades || []);
 
