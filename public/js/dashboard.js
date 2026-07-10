@@ -536,18 +536,26 @@ async function carregarOpcoesFiltro() {
   } catch (err) {}
 }
 
-function aplicarFiltros() {
-  const special = getSpecialStatus();
-  carregarDashboard();
-  if (special === 'Divergências') {
-    carregarAtivosAdvertencia();
-  } else if (special === 'UX Pendentes') {
-    carregarAtivosUXPendentes();
-  } else if (special === 'WXP Pendentes') {
-    carregarAtivosWXPPendentes();
-  } else {
-    carregarAtivosFiltrados();
+function setLoading(loading) {
+  const btn = document.querySelector('.filtros-bar .btn-primary');
+  if (btn) {
+    btn.disabled = loading;
+    btn.textContent = loading ? 'Filtrando...' : 'Filtrar';
   }
+  const section = document.getElementById('resultadosFiltro');
+  if (loading && section) section.style.display = 'none';
+}
+
+function aplicarFiltros() {
+  setLoading(true);
+  const special = getSpecialStatus();
+  Promise.all([
+    carregarDashboard(),
+    special === 'Divergências' ? carregarAtivosAdvertencia() :
+    special === 'UX Pendentes' ? carregarAtivosUXPendentes() :
+    special === 'WXP Pendentes' ? carregarAtivosWXPPendentes() :
+    carregarAtivosFiltrados()
+  ]).finally(() => setLoading(false));
 }
 
 async function carregarAtivosFiltrados() {

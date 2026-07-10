@@ -347,6 +347,8 @@ body::before {
   box-shadow: 0 1px 3px rgba(var(--accent-rgb),0.2);
 }
 .btn-primary:hover { background: var(--accent-light); box-shadow: 0 2px 8px rgba(var(--accent-rgb),0.3); transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn-primary:disabled:hover { background: var(--accent); box-shadow: 0 1px 3px rgba(var(--accent-rgb),0.2); transform: none; }
 .btn-outline {
   background: transparent; border: 1.5px solid var(--border); color: var(--text-secondary);
 }

@@ -47,7 +47,18 @@ function carregarFiltrosDrop() {
     return url;
   }
 
+  function setLoadingAtivos(loading) {
+    const btn = document.querySelector('.filtros-bar .btn-primary');
+    if (btn) {
+      btn.disabled = loading;
+      btn.textContent = loading ? 'Filtrando...' : 'Filtrar';
+    }
+    const badge = document.getElementById('totalBadge');
+    if (loading && badge) badge.textContent = 'Carregando...';
+  }
+
   async function carregarAtivos() {
+    setLoadingAtivos(true);
     try {
       const busca = document.getElementById('filtroBusca').value.trim();
 
@@ -68,6 +79,9 @@ function carregarFiltrosDrop() {
     renderPaginacao(data.total);
   } catch (err) {
     console.error('Erro ao carregar ativos:', err);
+    document.getElementById('totalBadge').textContent = 'Erro ao carregar';
+  } finally {
+    setLoadingAtivos(false);
   }
 }
 

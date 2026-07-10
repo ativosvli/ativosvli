@@ -159,20 +159,22 @@ function createSQLiteClient() {
 function createMySQLClient(config) {
   const mysql = require('mysql2/promise');
 
-  let conn;
+  let pool;
 
-  async function getConn() {
-    if (!conn) {
-      conn = await mysql.createConnection({
+  async function getPool() {
+    if (!pool) {
+      pool = mysql.createPool({
         host: config.host,
         port: config.port || 3306,
         user: config.user,
         password: config.password,
         database: config.database,
-        multipleStatements: true
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0
       });
     }
-    return conn;
+    return pool;
   }
 
   function rowToObj(row, columns) {
@@ -196,37 +198,37 @@ function createMySQLClient(config) {
       const namedParams = [...sql.matchAll(/@(\w+)/g)].map(m => m[1]);
       return {
         run: async (...params) => {
-          const c = await getConn();
+          const p = await getPool();
           const flat = prepareParams(params, namedParams);
-          const [result] = await c.execute(mysqlSql, flat);
+          const [result] = await p.execute(mysqlSql, flat);
           return { changes: result.affectedRows, lastInsertRowid: result.insertId };
         },
         get: async (...params) => {
-          const c = await getConn();
+          const p = await getPool();
           const flat = prepareParams(params, namedParams);
-          const [rows, cols] = await c.execute(mysqlSql, flat);
+          const [rows, cols] = await p.execute(mysqlSql, flat);
           const columns = cols.map(c => c.name);
           return rows[0] ? rowToObj(rows[0], columns) : undefined;
         },
         all: async (...params) => {
-          const c = await getConn();
+          const p = await getPool();
           const flat = prepareParams(params, namedParams);
-          const [rows, cols] = await c.execute(mysqlSql, flat);
+          const [rows, cols] = await p.execute(mysqlSql, flat);
           const columns = cols.map(c => c.name);
           return rows.map(row => rowToObj(row, columns));
         }
       };
     },
     exec: async (sql) => {
-      const c = await getConn();
-      await c.query(sql);
+      const p = await getPool();
+      await p.query(sql);
     },
     batch: async (statements) => {
-      const c = await getConn();
+      const p = await getPool();
       const out = [];
       for (const s of statements) {
         try {
-          const [result] = await c.execute(convertSql(s.sql), s.params || []);
+          const [result] = await p.execute(convertSql(s.sql), s.params || []);
           out.push({ ok: true, changes: result.affectedRows });
         } catch (e) {
           out.push({ ok: false, error: e.message });
@@ -235,7 +237,7 @@ function createMySQLClient(config) {
       return out;
     },
     pragma: () => {},
-    close: async () => { if (conn) { await conn.end(); conn = null; } }
+    close: async () => { if (pool) { await pool.end(); pool = null; } }
   };
 }
 
