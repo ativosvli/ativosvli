@@ -9,8 +9,9 @@ const app = express();
 app.set('trust proxy', 1);
 
 app.use((req, res, next) => {
-  if (!req.secure && req.headers.host && !req.headers.host.includes('localhost')) {
-    if (req.headers['x-forwarded-proto'] !== 'https') {
+  if (req.headers.host && !req.headers.host.includes('localhost')) {
+    const proto = req.headers['x-forwarded-proto'] || req.protocol;
+    if (proto !== 'https' && req.method === 'GET') {
       return res.redirect(301, 'https://' + req.headers.host + req.url);
     }
   }
