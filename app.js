@@ -37,6 +37,17 @@ app.get('/api/status', (req, res) => {
   res.json({ status: 'online', versao: '1.0.0' });
 });
 
+app.get('/api/debug-db', async (req, res) => {
+  try {
+    const { getDatabase } = require('./database');
+    const db = await getDatabase();
+    const test = await db.prepare('SELECT COUNT(*) as total FROM ativos').get();
+    res.json({ ok: true, ativos: test.total });
+  } catch (e) {
+    res.json({ ok: false, erro: e.message, stack: e.stack });
+  }
+});
+
 app.use((req, res, next) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ erro: 'Rota não encontrada' });
