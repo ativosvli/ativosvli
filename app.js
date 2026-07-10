@@ -8,6 +8,14 @@ const { sseHandler } = require('./events');
 const app = express();
 app.set('trust proxy', 1);
 
+app.use((req, res, next) => {
+  if (req.headers['x-forwarded-proto'] === 'https' || req.secure) return next();
+  if (req.headers.host && !req.headers.host.includes('localhost')) {
+    return res.redirect(301, 'https://' + req.headers.host + req.url);
+  }
+  next();
+});
+
 const tempDir = process.env.TEMP_DIR || (process.env.LAMBDA_TASK_ROOT ? '/tmp/temp_uploads' : path.join(__dirname, 'temp_uploads'));
 if (!fs.existsSync(tempDir)) {
   try { fs.mkdirSync(tempDir, { recursive: true }); } catch (e) {}
