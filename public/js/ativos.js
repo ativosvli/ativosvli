@@ -2,6 +2,7 @@ let paginaAtual = 1;
 let totalAtivos = 0;
 let ativoEditandoId = null;
 let ultimoAtivoVisualizado = null;
+let reqId = 0;
 
 const STATUS_GERAIS = ['Em Operação', 'Em Estoque(-60Dias)', 'Em Estoque(+60Dias)', 'Reservado', 'Backup', 'Backup em Uso', 'Estoque TI VLI', 'Homologação', 'Processo de Entrega', 'Estoque Não Localizado', 'Em Manutenção', 'SAP Configurado'];
 
@@ -59,6 +60,7 @@ function carregarFiltrosDrop() {
   }
 
   async function carregarAtivos() {
+    const id = ++reqId;
     setLoadingAtivos(true);
     try {
       const busca = document.getElementById('filtroBusca').value.trim();
@@ -76,6 +78,7 @@ function carregarFiltrosDrop() {
     if (res.status === 401) { window.location.href = '/'; return; }
     if (!res.ok) { console.error('Erro HTTP:', res.status); document.getElementById('totalBadge').textContent = `Erro ${res.status}`; return; }
     const data = await res.json();
+    if (id !== reqId) { console.log('Resposta ignorada (req desatualizada)'); return; }
     console.log('Resposta:', data.total, 'registros');
     totalAtivos = data.total;
     document.getElementById('totalBadge').textContent = `${data.total} registros`;
@@ -86,7 +89,7 @@ function carregarFiltrosDrop() {
     console.error('Erro ao carregar ativos:', err);
     document.getElementById('totalBadge').textContent = 'Erro ao carregar';
   } finally {
-    setLoadingAtivos(false);
+    if (id === reqId) setLoadingAtivos(false);
   }
 }
 
